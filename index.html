@@ -429,11 +429,12 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     svg.setAttribute("aria-label", `Palpites: ${b} menino, ${g} menina`);
 
     const nomes = data.palpites.nomes || { menino: [], menina: [] };
-    // o palpite desta pessoa vem da folha (pelo nome), não só da memória do navegador
-    const me = String(claimDraft || "").trim().toLowerCase();
-    if (me) {
+    // o palpite desta pessoa vem sempre da base de dados (pelo nome), não da memória do navegador
+    const me = String(LS.get("palpiteNome", "") || claimDraft || "").trim().toLowerCase();
+    if (loaded && me) {
       const found = ["menino", "menina"].find((k) => nomes[k].some((n) => n.trim().toLowerCase() === me));
-      if (found && found !== myVote) { myVote = found; LS.set("palpite", found); }
+      if (found) { if (found !== myVote) { myVote = found; LS.set("palpite", found); } }
+      else if (myVote === "menino" || myVote === "menina") { myVote = null; LS.set("palpite", null); LS.set("palpiteNome", ""); }
     }
     const pct = (n) => (total ? Math.round((n / total) * 100) : 0) + "%";
     const line = (key, label, n) => [
@@ -598,14 +599,14 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     try {
       const r = await call("vote", choice, name, token);
       if (r.ok) {
-        myVote = choice; LS.set("palpite", choice);
+        myVote = choice; LS.set("palpite", choice); LS.set("palpiteNome", name);
         claimDraft = name; LS.set("nome", name);
         toast("Palpite registado!");
         confetti([choice === "menino" ? "--boy" : "--girl", "--accent"]);
       } else toast("Escreve o teu nome para guardar o palpite.");
     } catch (e) { toast("Não foi possível guardar o palpite. Tenta outra vez mais tarde."); }
     voting = false;
-    await refresh(); // os números vêm sempre da folha
+    await refresh(); // os números vêm sempre da base de dados
   }));
   $("#skipGuess").addEventListener("click", () => { if (!myVote) { myVote = "skip"; LS.set("palpite", "skip"); } closeModal(); render(); });
   $("#guessModal").addEventListener("keydown", (e) => { if (e.key === "Escape") $("#skipGuess").click(); });
