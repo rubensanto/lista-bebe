@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lista de Presentes do Bebé</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: hero with countdown, two stat cards (progress + guess pie), gift sections, guestbook */
+:root {
+  --paper: #f5f3f9; --card: #ffffff; --ink: #2a2540; --muted: #686283; --line: #e1ddeb;
+  --accent: #c94f72; --accent-ink: #ffffff; --accent-soft: #fbe8ee;
+  --boy: #4f8fd0; --boy-soft: #e3effb; --girl: #e57aa0; --girl-soft: #fde8f0;
+  --sage: #2f7a5c; --sage-soft: #e2f3ea; --taken-bg: #efedf4;
+  --bg-boy: #d6e7f8; --bg-girl: #f9dce8;
+  --shadow: 0 1px 2px rgba(42,37,64,.05), 0 8px 24px rgba(42,37,64,.07);
+  --f-display: "Young Serif", Georgia, "Times New Roman", serif;
+  --f-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #15131d; --card: #1f1c2a; --ink: #ece9f5; --muted: #a39dba; --line: #332f44;
+    --accent: #f07d9e; --accent-ink: #1d0b12; --accent-soft: #3a2230;
+    --boy: #7fb3ea; --boy-soft: #1d2b3d; --girl: #f39dbd; --girl-soft: #3a2230;
+    --sage: #74c9a3; --sage-soft: #1b2e27; --taken-bg: #242131;
+    --bg-boy: #17222f; --bg-girl: #2b1823;
+    --shadow: 0 1px 2px rgba(0,0,0,.35); color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper) linear-gradient(90deg, var(--bg-boy) 0 50%, var(--bg-girl) 50% 100%) fixed; color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1060px; margin: 0 auto; padding-inline: 20px; padding-block: 36px 72px; display: flex; flex-direction: column; gap: 36px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 400; margin: 0; text-wrap: balance; }
+
+/* hero */
+header.hero { display: flex; flex-direction: column; gap: 12px; max-width: 68ch; }
+.eyebrow { margin: 0; font-family: var(--f-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: clamp(34px, 6.4vw, 54px); line-height: 1.05; }
+.note { margin: 0; color: var(--muted); font-size: 16px; white-space: pre-line; }
+.chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 14px; font-weight: 600; }
+.chip .num { font-family: var(--f-display); font-weight: 400; font-size: 20px; color: var(--accent); font-variant-numeric: tabular-nums; }
+.reveal { padding: 18px 20px; border-radius: 18px; font-family: var(--f-display); font-size: clamp(22px, 4vw, 30px); text-align: left; }
+.reveal.menino { background: var(--boy-soft); color: var(--boy); }
+.reveal.menina { background: var(--girl-soft); color: var(--girl); }
+.notice { padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); max-width: 65ch; }
+
+/* stats */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.panel h2 { font-size: 20px; }
+.label { font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.big { font-family: var(--f-display); font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
+.big small { font-family: var(--f-body); font-size: 15px; color: var(--muted); margin-left: 6px; }
+.bar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 4px; transition: width .6s ease; }
+.pie-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.pie { width: 132px; height: 132px; flex: none; }
+.pie text { font-family: var(--f-display); fill: var(--ink); }
+.pie .sub { font-family: var(--f-body); fill: var(--muted); font-size: 9px; }
+.legend { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.legend div { display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+.dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.legend strong { font-weight: 700; }
+.legend .right { color: var(--sage); font-size: 13px; font-weight: 600; }
+.my-guess { font-size: 14px; color: var(--muted); }
+
+/* sections */
+section.block { display: flex; flex-direction: column; gap: 16px; }
+.block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.block-head h2 { font-size: clamp(24px, 3.6vw, 30px); }
+.block-head p { margin: 0; color: var(--muted); max-width: 60ch; }
+.gifts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+.tag { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 6px 20px 20px 20px; padding: 20px 20px 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow); min-width: 0; }
+.tag::before { content: ""; position: absolute; top: 14px; right: 16px; width: 12px; height: 12px; border-radius: 50%; background: var(--line); }
+.add-form { background: var(--card); border: 1px dashed var(--muted); border-radius: 20px; padding: 20px 22px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; align-items: start; }
+.add-form .wide { grid-column: 1 / -1; }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.opts legend { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; padding: 0; }
+.opt { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; cursor: pointer; font-size: 14px; color: var(--ink); font-weight: 500; }
+.opt input { width: auto; margin-top: 3px; accent-color: var(--accent); }
+.opt:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.opt small { display: block; color: var(--muted); font-weight: 400; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--ink); font-weight: 500; }
+.check input { width: auto; accent-color: var(--accent); }
+.tag-head { display: flex; align-items: center; gap: 10px; padding-right: 24px; flex-wrap: wrap; }
+.pill { font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; background: var(--sage-soft); color: var(--sage); }
+.price { font-family: var(--f-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tag h3 { font-size: 21px; line-height: 1.2; overflow-wrap: anywhere; }
+.desc { margin: 0; color: var(--muted); overflow-wrap: anywhere; white-space: pre-line; }
+.shop { color: var(--ink); font-weight: 600; text-underline-offset: 3px; align-self: flex-start; }
+.actions { margin-top: auto; padding-top: 6px; display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.who { font-size: 14px; color: var(--muted); }
+.who strong { color: var(--ink); }
+.tag.taken { background: var(--taken-bg); box-shadow: none; }
+.tag.taken h3, .tag.taken .desc { opacity: .7; }
+.tag.taken .pill { background: transparent; color: var(--muted); border: 1px solid var(--muted); transform: rotate(-3deg); }
+.tag.mine { border-color: var(--accent); background: var(--card); }
+.tag.mine .pill { background: var(--accent); color: var(--accent-ink); transform: none; border: none; }
+.tag.mine h3, .tag.mine .desc { opacity: 1; }
+.count { display: inline-flex; align-items: baseline; gap: 4px; font-family: var(--f-display); color: var(--accent); }
+.count b { font-size: 26px; font-weight: 400; line-height: 1; font-variant-numeric: tabular-nums; }
+.count span { font-family: var(--f-body); font-size: 13px; color: var(--muted); }
+.names { display: flex; flex-wrap: wrap; gap: 6px; }
+.names span { font-size: 12px; padding: 2px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); }
+
+/* forms & buttons */
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+label { font-size: 13px; font-weight: 600; color: var(--muted); }
+input, textarea { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; width: 100%; min-width: 0; }
+textarea { resize: vertical; min-height: 84px; }
+input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button { font: inherit; cursor: pointer; border-radius: 999px; padding: 8px 16px; border: 1px solid transparent; font-weight: 600; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover:not(:disabled) { filter: brightness(1.07); }
+.btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn-text { background: none; border: none; padding: 4px 0; color: var(--muted); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+
+/* guestbook */
+.guest { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 760px) { .guest { grid-template-columns: 1fr; } }
+.guest form { display: flex; flex-direction: column; gap: 12px; }
+.msgs { list-style: none; margin: 0; padding: 0; columns: 2 260px; column-gap: 16px; }
+.msgs li { break-inside: avoid; margin-bottom: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+.msgs p { margin: 0 0 8px; overflow-wrap: anywhere; }
+.msgs .by { font-size: 13px; color: var(--muted); }
+.msgs .by strong { color: var(--ink); }
+.counter { font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+
+.empty { color: var(--muted); max-width: 55ch; margin: 0; }
+.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 999px; font-size: 14px; max-width: calc(100% - 32px); box-shadow: var(--shadow); z-index: 30; }
+
+/* guess modal */
+.modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 16px; background: rgba(21,19,29,.55); }
+.modal-card { background: var(--card); border-radius: 26px; padding: 28px 24px 22px; width: min(440px, 100%); display: flex; flex-direction: column; gap: 14px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+.modal-card h2 { font-size: 30px; }
+.modal-card p { margin: 0; color: var(--muted); }
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
+.choice { border-radius: 20px; padding: 20px 10px; font-family: var(--f-display); font-weight: 400; font-size: 24px; border: 2px solid transparent; transition: transform .15s ease; }
+.choice:hover { transform: translateY(-2px); }
+.choice.menino { background: var(--boy-soft); color: var(--boy); border-color: var(--boy); }
+.choice.menina { background: var(--girl-soft); color: var(--girl); border-color: var(--girl); }
+.choice svg { display: block; margin: 0 auto 6px; }
+#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 40; width: 100%; height: 100%; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .bar i, .choice { transition: none; } }
+@media (max-width: 480px) { .wrap { padding-inline: 16px; padding-block: 28px 56px; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="hero">
+    <p class="eyebrow" id="occasion">Chá de bebé</p>
+    <h1 id="listTitle">Lista de Presentes do Bebé</h1>
+    <p class="note" id="listNote"></p>
+    <div class="chips" id="chips"></div>
+  </header>
+
+  <div class="reveal" id="reveal" hidden></div>
+  <div class="notice" id="notice" hidden></div>
+
+  <div class="stats">
+    <div class="panel">
+      <span class="label">Presentes</span>
+      <div class="big" id="giftsBig">–</div>
+      <div class="bar" aria-hidden="true"><i id="barFill"></i></div>
+      <span class="who" id="giftsSub">A carregar…</span>
+    </div>
+    <div class="panel">
+      <span class="label" id="pieLabel">Menino ou menina?</span>
+      <div class="pie-row">
+        <svg class="pie" id="pie" viewBox="0 0 120 120" role="img" aria-label="Palpites"></svg>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="row my-guess" id="myGuess"></div>
+    </div>
+  </div>
+
+  <section class="block" id="singleBlock">
+    <div class="block-head">
+      <h2>Só precisamos de um</h2>
+      <p>Quando alguém escolhe um destes, fica reservado e mais ninguém o pode escolher.</p>
+    </div>
+    <ul class="gifts" id="singleList"></ul>
+  </section>
+
+  <section class="block" id="multiBlock">
+    <div class="block-head">
+      <h2>Quantos mais, melhor</h2>
+      <p>Destes, várias pessoas podem oferecer. Regista o teu e vê quantas pessoas já vão dar.</p>
+    </div>
+    <ul class="gifts" id="multiList"></ul>
+  </section>
+  <p class="empty" id="empty">A carregar a lista…</p>
+
+  <section class="block">
+    <div class="block-head">
+      <h2>Falta alguma prenda?</h2>
+      <p>Acrescenta-a à lista. Escolhe se só faz falta uma ou se várias pessoas a podem oferecer.</p>
+    </div>
+    <form class="add-form" id="addForm" autocomplete="off">
+      <div class="field"><label for="addName">Prenda</label><input id="addName" maxlength="80" placeholder="Ex.: Termómetro de banho" required></div>
+      <div class="field"><label for="addDesc">Detalhes (opcional)</label><input id="addDesc" maxlength="200" placeholder="Cor, tamanho, marca…"></div>
+      <fieldset class="opts wide">
+        <legend>Quantas fazem falta?</legend>
+        <label class="opt"><input type="radio" name="addType" value="single" checked><span>Só uma<small>Fica reservada e mais ninguém a pode escolher.</small></span></label>
+        <label class="opt"><input type="radio" name="addType" value="multi"><span>Várias<small>Outras pessoas também a podem oferecer.</small></span></label>
+      </fieldset>
+      <div class="field"><label for="addWho">O teu nome</label><input id="addWho" maxlength="60" placeholder="Ex.: Tia Ana" required></div>
+      <div class="field" id="addCodeField" hidden><label for="addCode">Código do evento</label><input id="addCode" maxlength="60" placeholder="Recebeste-o com o convite"></div>
+      <label class="check wide"><input type="checkbox" id="addGive" checked> Eu vou oferecer esta prenda</label>
+      <div class="row wide"><button class="btn-primary" type="submit" id="addBtn">Acrescentar à lista</button><span class="who">O teu nome não aparece no site, só para os pais.</span></div>
+    </form>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <h2>Mensagens para o bebé</h2>
+      <p>Deixa umas palavras para ler um dia mais tarde.</p>
+    </div>
+    <div class="guest">
+      <form id="msgForm" autocomplete="off">
+        <div class="field"><label for="msgName">O teu nome</label><input id="msgName" maxlength="40" placeholder="Ex.: Avó Lurdes"></div>
+        <div class="field"><label for="msgText">Mensagem</label><textarea id="msgText" maxlength="280" placeholder="Bem-vindo ao mundo!"></textarea><span class="counter" id="msgCount">0 / 280</span></div>
+        <div class="field" id="msgCodeField" hidden><label for="msgCode">Código do evento</label><input id="msgCode" maxlength="60" placeholder="Recebeste-o com o convite"></div>
+        <div class="row"><button class="btn-primary" type="submit" id="msgBtn">Deixar mensagem</button></div>
+      </form>
+      <ul class="msgs" id="msgs"></ul>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="guessModal" hidden role="dialog" aria-modal="true" aria-labelledby="guessTitle">
+  <div class="modal-card">
+    <span class="eyebrow">Antes de veres a lista</span>
+    <h2 id="guessTitle">Menino ou menina?</h2>
+    <p>Qual é o teu palpite? Escreve o teu nome e escolhe. Se mudares de ideias, usa o mesmo nome.</p>
+    <div class="field" style="text-align: left"><label for="guessName">O teu nome</label><input id="guessName" maxlength="40" placeholder="Ex.: Tia Ana" autocomplete="name"></div>
+    <div class="choices">
+      <button class="choice menino" type="button" data-vote="menino">
+        <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="17" cy="23" r="10" fill="none" stroke="currentColor" stroke-width="3"/><path d="M24 16 L34 6 M26 6 H34 V14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Menino
+      </button>
+      <button class="choice menina" type="button" data-vote="menina">
+        <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15" r="10" fill="none" stroke="currentColor" stroke-width="3"/><path d="M20 25 V37 M14 31 H26" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+        Menina
+      </button>
+    </div>
+    <button class="btn-text" type="button" id="skipGuess">Prefiro não arriscar</button>
+  </div>
+</div>
+<canvas id="confetti" hidden></canvas>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const eur = new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" });
+  const LS = {
+    get(k, d) { try { const v = localStorage.getItem("lpb-" + k); return v == null ? d : JSON.parse(v); } catch (_) { return d; } },
+    set(k, v) { try { localStorage.setItem("lpb-" + k, JSON.stringify(v)); } catch (_) {} },
+  };
+  const reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  let data = { config: {}, gifts: [], palpites: { menino: 0, menina: 0, nomes: { menino: [], menina: [] } }, mensagens: [] }, loaded = false;
+  let openClaim = null, claimDraft = LS.get("nome", ""), codeDraft = LS.get("codigo", "");
+  let codes = LS.get("reservas", {});           // id do presente -> código da reserva
+  let myVote = LS.get("palpite", null);         // "menino" | "menina" | "skip"
+  let token = LS.get("token", null);
+  if (!token) {
+    token = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2, 12));
+    LS.set("token", token);
+  }
+  const busy = new Set();
+
+  // ---------- ligação ao Supabase ----------
+  // A chave pública (anon/publishable) foi feita para estar visível: só dá acesso às funções do site.
+  const SUPABASE_URL = "https://kyueabpibqcsnavdmcuk.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_H5RbiJBQP1RwY4TcH029tw_d0ytm4p4";
+  const RPC = {
+    getData: () => ["get_data", {}],
+    reserve: (id, name, code) => ["reserve", { p_prenda: id, p_nome: name, p_codigo: code || "" }],
+    cancelReservation: (code) => ["cancel_reservation", { p_code: code || "" }],
+    addGift: (gift, desc, multi, who, give, code) => ["add_gift", { p_nome: gift, p_detalhes: desc, p_multi: multi, p_quem: who, p_dar: give, p_codigo: code || "" }],
+    vote: (choice, name) => ["vote", { p_palpite: choice, p_nome: name }],
+    postMessage: (name, text, code) => ["post_message", { p_nome: name, p_texto: text, p_codigo: code || "" }],
+  };
+  async function call(fn, ...args) {
+    const [rpc, body] = RPC[fn](...args);
+    const headers = { apikey: SUPABASE_KEY, "Content-Type": "application/json" };
+    if (!SUPABASE_KEY.startsWith("sb_")) headers.Authorization = "Bearer " + SUPABASE_KEY;
+    const res = await fetch(SUPABASE_URL + "/rest/v1/rpc/" + rpc, { method: "POST", headers, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(rpc + ": " + res.status);
+    return res.json();
+  }
+
+  function h(tag, props, ...kids) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(props || {})) {
+      if (v == null || v === false) continue;
+      if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+      else if (k === "class") el.className = v;
+      else if (k === "text") el.textContent = v;
+      else el.setAttribute(k, v === true ? "" : v);
+    }
+    for (const c of kids.flat()) if (c != null && c !== false) el.append(c.nodeType ? c : document.createTextNode(c));
+    return el;
+  }
+
+  let toastT;
+  function toast(msg) {
+    const t = $("#toast"); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 3800);
+  }
+  function notice(msg) { const n = $("#notice"); n.textContent = msg || ""; n.hidden = !msg; }
+
+  // ---------- confetti ----------
+  function confetti(colors) {
+    if (reduceMotion) return;
+    const cv = $("#confetti"), ctx = cv.getContext("2d");
+    cv.hidden = false; cv.width = innerWidth; cv.height = innerHeight;
+    const cs = getComputedStyle(document.documentElement);
+    const pal = (colors || ["--accent", "--boy", "--girl", "--sage"]).map((c) => cs.getPropertyValue(c).trim() || "#c94f72");
+    const P = Array.from({ length: 140 }, () => ({
+      x: innerWidth / 2 + (Math.random() - .5) * innerWidth * .4, y: innerHeight * .35,
+      vx: (Math.random() - .5) * 12, vy: -Math.random() * 12 - 4, r: Math.random() * 6 + 4,
+      a: Math.random() * Math.PI, va: (Math.random() - .5) * .3, c: pal[(Math.random() * pal.length) | 0],
+    }));
+    const t0 = performance.now();
+    (function frame(t) {
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      P.forEach((p) => {
+        p.vy += .35; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c;
+        ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); ctx.restore();
+      });
+      if (t - t0 < 2600) requestAnimationFrame(frame); else { ctx.clearRect(0, 0, cv.width, cv.height); cv.hidden = true; }
+    })(t0);
+  }
+
+  // ---------- dados ----------
+  async function refresh() {
+    try {
+      data = await call("getData");
+      loaded = true;
+      let changed = false;
+      for (const id of Object.keys(codes)) {
+        const g = data.gifts.find((x) => x.id === id);
+        if (!g || g.count === 0) { delete codes[id]; changed = true; }
+      }
+      if (changed) LS.set("reservas", codes);
+      notice("");
+      render();
+    } catch (e) {
+      if (!loaded) notice("Não foi possível carregar a lista. Atualiza a página para tentar outra vez.");
+    }
+  }
+
+  // ---------- render ----------
+  function daysUntil(iso) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const target = new Date(y, m - 1, d), now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.round((target - today) / 86400000);
+  }
+
+  function renderHeader() {
+    const c = data.config;
+    $("#occasion").textContent = c.ocasiao || "Chá de bebé";
+    $("#listTitle").textContent = c.titulo || "Lista de Presentes do Bebé";
+    $("#listNote").textContent = c.mensagem || "";
+    if (c.titulo) document.title = c.titulo;
+
+    const chips = [];
+    if (c.dataPrevista) {
+      const n = daysUntil(c.dataPrevista);
+      const [y, m, d] = c.dataPrevista.split("-");
+      if (n > 1) chips.push(h("span", { class: "chip" }, h("span", { class: "num", text: String(n) }), "dias para conhecermos o bebé"));
+      else if (n === 1) chips.push(h("span", { class: "chip", text: "O bebé deve chegar amanhã!" }));
+      else if (n === 0) chips.push(h("span", { class: "chip", text: "O bebé deve chegar hoje!" }));
+      else chips.push(h("span", { class: "chip", text: "O bebé já deve ter chegado!" }));
+      chips.push(h("span", { class: "chip", text: `Data prevista: ${d}/${m}/${y}` }));
+    }
+    const total = data.palpites.menino + data.palpites.menina;
+    if (total) chips.push(h("span", { class: "chip" }, h("span", { class: "num", text: String(total) }), total === 1 ? "palpite" : "palpites"));
+    $("#chips").replaceChildren(...chips);
+
+    const rv = $("#reveal");
+    if (c.revelacao) {
+      rv.hidden = false;
+      rv.className = "reveal " + c.revelacao;
+      rv.textContent = c.revelacao === "menino" ? "É um menino!" : "É uma menina!";
+    } else rv.hidden = true;
+    $("#msgCodeField").hidden = !c.precisaCodigo;
+    $("#addCodeField").hidden = !c.precisaCodigo;
+    if (c.precisaCodigo && !$("#msgCode").value) $("#msgCode").value = codeDraft;
+    if (c.precisaCodigo && !$("#addCode").value) $("#addCode").value = codeDraft;
+  }
+
+  function arcPath(cx, cy, r, a0, a1) {
+    const x0 = cx + r * Math.sin(a0), y0 = cy - r * Math.cos(a0);
+    const x1 = cx + r * Math.sin(a1), y1 = cy - r * Math.cos(a1);
+    return `M${cx} ${cy} L${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)} Z`;
+  }
+
+  function renderPie() {
+    const { menino: b, menina: g } = data.palpites, total = b + g;
+    const rev = data.config.revelacao;
+    const svg = $("#pie");
+    const NS = "http://www.w3.org/2000/svg";
+    const el = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
+    const parts = [];
+    if (!total) parts.push(el("circle", { cx: 60, cy: 60, r: 56, fill: "var(--line)" }));
+    else if (!b || !g) parts.push(el("circle", { cx: 60, cy: 60, r: 56, fill: b ? "var(--boy)" : "var(--girl)" }));
+    else {
+      const split = (b / total) * Math.PI * 2;
+      parts.push(el("path", { d: arcPath(60, 60, 56, 0, split), fill: "var(--boy)" }));
+      parts.push(el("path", { d: arcPath(60, 60, 56, split, Math.PI * 2), fill: "var(--girl)" }));
+    }
+    parts.push(el("circle", { cx: 60, cy: 60, r: 34, fill: "var(--card)" }));
+    parts.push(el("text", { x: 60, y: 63, "text-anchor": "middle", "font-size": 22 }, String(total)));
+    parts.push(el("text", { x: 60, y: 77, "text-anchor": "middle", class: "sub" }, total === 1 ? "palpite" : "palpites"));
+    svg.replaceChildren(...parts);
+    svg.setAttribute("aria-label", `Palpites: ${b} menino, ${g} menina`);
+
+    const nomes = data.palpites.nomes || { menino: [], menina: [] };
+    // o palpite desta pessoa vem da folha (pelo nome), não só da memória do navegador
+    const me = String(claimDraft || "").trim().toLowerCase();
+    if (me) {
+      const found = ["menino", "menina"].find((k) => nomes[k].some((n) => n.trim().toLowerCase() === me));
+      if (found && found !== myVote) { myVote = found; LS.set("palpite", found); }
+    }
+    const pct = (n) => (total ? Math.round((n / total) * 100) : 0) + "%";
+    const line = (key, label, n) => [
+      h("div", {},
+        h("span", { class: "dot", style: `background: var(--${key === "menino" ? "boy" : "girl"})` }),
+        h("span", {}, label + " "), h("strong", { text: pct(n) }), h("span", { class: "who", text: ` (${n})` }),
+        rev === key ? h("span", { class: "right", text: " · acertaram!" }) : null),
+      nomes[key].length ? h("div", { class: "names" }, nomes[key].map((x) => h("span", { text: x }))) : null,
+    ];
+    $("#legend").replaceChildren(...[
+      ...line("menino", "Menino", b), ...line("menina", "Menina", g),
+      total ? null : h("span", { class: "who", text: "Ainda ninguém deu o seu palpite." })].filter(Boolean));
+    $("#pieLabel").textContent = rev ? "Quem acertou?" : "Menino ou menina?";
+
+    const mg = $("#myGuess");
+    if (myVote === "menino" || myVote === "menina") {
+      mg.replaceChildren(
+        h("span", {}, "O teu palpite: ", h("strong", { text: myVote === "menino" ? "Menino" : "Menina" })),
+        rev ? h("span", { text: rev === myVote ? " · Acertaste!" : " · Fica para a próxima!" })
+            : h("button", { class: "btn-text", type: "button", onclick: openModal }, "mudar"));
+    } else if (!rev) {
+      mg.replaceChildren(h("button", { class: "btn-ghost", type: "button", onclick: openModal }, "Dar o meu palpite"));
+    } else mg.replaceChildren();
+  }
+
+  function renderGifts() {
+    const singles = data.gifts.filter((g) => !g.multi), multis = data.gifts.filter((g) => g.multi);
+    const sTaken = singles.filter((g) => g.count > 0).length;
+    const mTotal = multis.reduce((a, g) => a + g.count, 0);
+    $("#giftsBig").replaceChildren(String(sTaken), h("small", { text: `de ${singles.length} reservados` }));
+    $("#barFill").style.width = singles.length ? (sTaken / singles.length) * 100 + "%" : "0";
+    $("#giftsSub").textContent = multis.length
+      ? `E ${mTotal} ${mTotal === 1 ? "oferta registada" : "ofertas registadas"} nos presentes de que precisamos vários.`
+      : "";
+
+    const focusId = document.activeElement && ["claimName", "claimCode"].includes(document.activeElement.id) ? document.activeElement.id : null;
+    $("#singleBlock").hidden = !singles.length;
+    $("#multiBlock").hidden = !multis.length;
+    $("#singleList").replaceChildren(...singles.map(card));
+    $("#multiList").replaceChildren(...multis.map(card));
+
+    const empty = $("#empty");
+    if (!loaded) { empty.hidden = false; empty.textContent = "A carregar a lista…"; }
+    else if (!data.gifts.length) { empty.hidden = false; empty.textContent = "Ainda não há presentes nesta lista. Volta mais tarde."; }
+    else empty.hidden = true;
+
+    const inp = focusId ? $("#" + focusId) : $("#claimName[data-fresh]");
+    if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  }
+
+  function card(g) {
+    const mine = !!codes[g.id] && g.count > 0;
+    const taken = !g.multi && g.count > 0;
+    const working = busy.has(g.id);
+    const li = h("li", { class: "tag" + (taken ? " taken" : "") + (mine ? " mine" : "") });
+    let price = null;
+    if (typeof g.price === "number" && g.price > 0) price = eur.format(g.price);
+    else if (typeof g.price === "string" && g.price) price = g.price;
+    const pillText = mine ? (g.multi ? "Também ofereces" : "Reservado por ti") : taken ? "Reservado" : g.multi ? "Aberto a todos" : "Disponível";
+    li.append(
+      h("div", { class: "tag-head" }, h("span", { class: "pill", text: pillText }), price ? h("span", { class: "price", text: price }) : null),
+      h("h3", { text: g.name }));
+    if (g.desc) li.append(h("p", { class: "desc", text: g.desc }));
+    if (/^https?:\/\//i.test(g.link)) li.append(h("a", { class: "shop", href: g.link, target: "_blank", rel: "noopener noreferrer", text: "Ver na loja ↗" }));
+
+    if (g.multi) {
+      li.append(h("div", { class: "count" },
+        h("b", { text: String(g.count) }),
+        h("span", { text: g.count === 1 ? "pessoa vai oferecer" : "pessoas vão oferecer" })));
+    }
+
+    const actions = h("div", { class: "actions" });
+    if (mine) {
+      actions.append(h("div", { class: "row" },
+        h("span", { class: "who", text: "Vais oferecer este presente." }),
+        h("button", { class: "btn-text", type: "button", disabled: working, onclick: () => cancel(g.id) }, working ? "A cancelar…" : "Cancelar")));
+    } else if (taken) {
+      actions.append(h("div", { class: "row" }, h("span", { class: "who", text: "Alguém já vai oferecer este presente." })));
+    } else if (openClaim === g.id) {
+      const inp = h("input", { id: "claimName", maxlength: "60", placeholder: "Ex.: Tia Ana", autocomplete: "name",
+        oninput: (e) => (claimDraft = e.target.value),
+        onkeydown: (e) => { if (e.key === "Enter") reserve(g.id); if (e.key === "Escape") { openClaim = null; render(); } } });
+      inp.value = claimDraft;
+      if (!document.getElementById("claimName")) inp.dataset.fresh = "1";
+      actions.append(h("div", { class: "field" }, h("label", { for: "claimName", text: "O teu nome" }), inp));
+      if (data.config.precisaCodigo) {
+        const code = h("input", { id: "claimCode", maxlength: "60", placeholder: "Recebeste-o com o convite", autocomplete: "off",
+          oninput: (e) => (codeDraft = e.target.value),
+          onkeydown: (e) => { if (e.key === "Enter") reserve(g.id); if (e.key === "Escape") { openClaim = null; render(); } } });
+        code.value = codeDraft;
+        actions.append(h("div", { class: "field" }, h("label", { for: "claimCode", text: "Código do evento" }), code));
+      }
+      actions.append(h("div", { class: "row" },
+        h("button", { class: "btn-primary", type: "button", disabled: working, onclick: () => reserve(g.id) }, working ? "A guardar…" : (g.multi ? "Confirmar" : "Confirmar reserva")),
+        h("button", { class: "btn-ghost", type: "button", disabled: working, onclick: () => { openClaim = null; render(); } }, "Voltar")));
+    } else {
+      actions.append(h("div", { class: "row" },
+        h("button", { class: "btn-primary", type: "button", onclick: () => { openClaim = g.id; render(); } },
+          g.multi ? (g.count ? "Também vou oferecer" : "Vou oferecer") : "Vou oferecer este")));
+    }
+    li.append(actions);
+    return li;
+  }
+
+  function renderMessages() {
+    const list = data.mensagens;
+    $("#msgs").replaceChildren(...(list.length ? list.map((m) => {
+      const d = m.data ? new Date(m.data) : null;
+      return h("li", {},
+        h("p", { text: m.texto }),
+        h("div", { class: "by" }, h("strong", { text: m.nome }), d ? " · " + d.toLocaleDateString("pt-PT", { day: "numeric", month: "long" }) : ""));
+    }) : [h("li", {}, h("p", { class: "who", text: "Ainda não há mensagens. Sê a primeira pessoa a escrever!" }))]));
+  }
+
+  function render() { renderHeader(); renderPie(); renderGifts(); renderMessages(); }
+
+  // ---------- ações ----------
+  async function reserve(id) {
+    if (busy.has(id)) return;
+    const name = claimDraft.trim();
+    if (!name) { toast("Escreve o teu nome para sabermos quem oferece."); $("#claimName")?.focus(); return; }
+    if (data.config.precisaCodigo && !codeDraft.trim()) { toast("Escreve o código do evento que recebeste com o convite."); $("#claimCode")?.focus(); return; }
+    busy.add(id); render();
+    try {
+      const r = await call("reserve", id, name, codeDraft.trim());
+      if (r.ok) {
+        codes[id] = r.code; LS.set("reservas", codes); LS.set("nome", name); LS.set("codigo", codeDraft.trim());
+        openClaim = null; toast("Obrigado! Ficou registado."); confetti();
+      } else if (r.reason === "taken") { openClaim = null; toast("Este presente acabou de ser reservado por outra pessoa."); }
+      else if (r.reason === "eventcode") { codeDraft = ""; toast("O código do evento não está certo. Pede-o a quem te enviou a lista."); }
+      else if (r.reason === "missing") { openClaim = null; toast("Este presente já não está na lista."); }
+      else toast("Escreve o teu nome para continuar.");
+    } catch (e) { toast("Não foi possível guardar. Verifica a ligação e tenta outra vez."); }
+    finally { busy.delete(id); await refresh(); }
+  }
+
+  async function cancel(id) {
+    if (busy.has(id)) return;
+    busy.add(id); render();
+    try {
+      const r = await call("cancelReservation", codes[id]);
+      if (r.ok || r.reason === "missing") { delete codes[id]; LS.set("reservas", codes); toast("Cancelado."); }
+      else toast("Não foi possível cancelar. Fala com quem fez a lista.");
+    } catch (e) { toast("Não foi possível cancelar. Verifica a ligação e tenta outra vez."); }
+    finally { busy.delete(id); await refresh(); }
+  }
+
+  function openModal() {
+    $("#guessModal").hidden = false;
+    const n = $("#guessName");
+    if (!n.value) n.value = claimDraft || "";
+    (n.value ? $(".choice.menino") : n).focus();
+  }
+  function closeModal() { $("#guessModal").hidden = true; }
+
+  let voting = false;
+  document.querySelectorAll("[data-vote]").forEach((b) => b.addEventListener("click", async () => {
+    if (voting) return;
+    const choice = b.dataset.vote, name = $("#guessName").value.trim();
+    if (!name) { toast("Escreve o teu nome para guardar o palpite."); $("#guessName").focus(); return; }
+    voting = true; closeModal(); toast("A guardar o palpite…");
+    try {
+      const r = await call("vote", choice, name, token);
+      if (r.ok) {
+        myVote = choice; LS.set("palpite", choice);
+        claimDraft = name; LS.set("nome", name);
+        toast("Palpite registado!");
+        confetti([choice === "menino" ? "--boy" : "--girl", "--accent"]);
+      } else toast("Escreve o teu nome para guardar o palpite.");
+    } catch (e) { toast("Não foi possível guardar o palpite. Tenta outra vez mais tarde."); }
+    voting = false;
+    await refresh(); // os números vêm sempre da folha
+  }));
+  $("#skipGuess").addEventListener("click", () => { if (!myVote) { myVote = "skip"; LS.set("palpite", "skip"); } closeModal(); render(); });
+  $("#guessModal").addEventListener("keydown", (e) => { if (e.key === "Escape") $("#skipGuess").click(); });
+
+  $("#msgText").addEventListener("input", (e) => { $("#msgCount").textContent = `${e.target.value.length} / 280`; });
+  $("#msgName").value = claimDraft;
+  $("#msgForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = $("#msgName").value.trim(), text = $("#msgText").value.trim(), code = $("#msgCode").value.trim();
+    if (!name || !text) { toast("Escreve o teu nome e a mensagem."); return; }
+    if (data.config.precisaCodigo && !code) { toast("Escreve o código do evento que recebeste com o convite."); $("#msgCode").focus(); return; }
+    const btn = $("#msgBtn"); btn.disabled = true; btn.textContent = "A enviar…";
+    try {
+      const r = await call("postMessage", name, text, code);
+      if (r.ok) {
+        $("#msgText").value = ""; $("#msgCount").textContent = "0 / 280";
+        LS.set("nome", name); if (code) { codeDraft = code; LS.set("codigo", code); }
+        toast("Mensagem deixada. Obrigado!"); confetti(["--accent", "--girl", "--boy"]);
+      } else if (r.reason === "eventcode") toast("O código do evento não está certo. Pede-o a quem te enviou a lista.");
+      else if (r.reason === "full") toast("O livro de mensagens está cheio.");
+      else toast("Escreve o teu nome e a mensagem.");
+    } catch (err) { toast("Não foi possível enviar. Verifica a ligação e tenta outra vez."); }
+    finally { btn.disabled = false; btn.textContent = "Deixar mensagem"; refresh(); }
+  });
+
+  $("#addWho").value = claimDraft;
+  $("#addForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const gift = $("#addName").value.trim(), desc = $("#addDesc").value.trim(), who = $("#addWho").value.trim();
+    const multi = document.querySelector('input[name="addType"]:checked').value === "multi";
+    const give = $("#addGive").checked, code = $("#addCode").value.trim();
+    if (!gift || !who) { toast("Escreve o nome da prenda e o teu nome."); return; }
+    if (data.config.precisaCodigo && !code) { toast("Escreve o código do evento que recebeste com o convite."); $("#addCode").focus(); return; }
+    const btn = $("#addBtn"); btn.disabled = true; btn.textContent = "A acrescentar…";
+    try {
+      const r = await call("addGift", gift, desc, multi, who, give, code);
+      if (r.ok) {
+        if (r.code) { codes[r.id] = r.code; LS.set("reservas", codes); }
+        LS.set("nome", who); claimDraft = who;
+        if (code) { codeDraft = code; LS.set("codigo", code); }
+        $("#addName").value = ""; $("#addDesc").value = "";
+        toast(give ? "Prenda acrescentada e registada em teu nome. Obrigado!" : "Prenda acrescentada à lista. Obrigado!");
+        confetti();
+      } else if (r.reason === "exists") toast("Essa prenda já está na lista. Procura-a acima.");
+      else if (r.reason === "eventcode") toast("O código do evento não está certo. Pede-o a quem te enviou a lista.");
+      else if (r.reason === "full") toast("Já foram acrescentadas muitas prendas. Fala com os pais.");
+      else toast("Escreve o nome da prenda e o teu nome.");
+    } catch (err) { toast("Não foi possível acrescentar. Verifica a ligação e tenta outra vez."); }
+    finally { btn.disabled = false; btn.textContent = "Acrescentar à lista"; refresh(); }
+  });
+
+  // ---------- arranque ----------
+  render();
+  refresh().then(() => { if (!myVote && !data.config.revelacao) openModal(); });
+  setInterval(() => { if (!openClaim && !document.hidden) refresh(); }, 30000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && !openClaim) refresh(); });
+})();
+</script>
+</body>
+</html>
