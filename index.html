@@ -36,7 +36,8 @@ body { margin: 0; background: var(--paper) linear-gradient(90deg, var(--bg-boy) 
 h1, h2, h3 { font-family: var(--f-display); font-weight: 400; margin: 0; text-wrap: balance; }
 
 /* hero */
-header.hero { display: flex; flex-direction: column; gap: 12px; max-width: 68ch; }
+header.hero { display: flex; flex-direction: column; gap: 12px; position: relative; }
+header.hero > .note { max-width: 68ch; }
 .eyebrow { margin: 0; font-family: var(--f-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
 h1 { font-size: clamp(34px, 6.4vw, 54px); line-height: 1.05; }
 .note { margin: 0; color: var(--muted); font-size: 16px; white-space: pre-line; }
@@ -163,15 +164,26 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
 @keyframes wave { 0%, 60%, 100% { transform: rotate(0); } 15%, 45% { transform: rotate(-22deg); } 30% { transform: rotate(14deg); } }
 /* contagem decrescente */
-.countdown { align-self: flex-start; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow); max-width: 100%; }
-.cd-grid { display: flex; gap: 10px; flex-wrap: wrap; }
-.cd-grid div { display: flex; flex-direction: column; align-items: center; min-width: 56px; }
+.countdown { align-self: stretch; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow); max-width: 100%; }
+.cd-grid { display: flex; gap: 10px; justify-content: space-around; }
+.cd-grid div { display: flex; flex-direction: column; align-items: center; min-width: 56px; flex: 1; }
+.festa .cd-grid div { flex: none; }
 .cd-grid b { font-family: var(--f-display); font-weight: 400; font-size: clamp(28px, 6vw, 40px); line-height: 1; color: var(--accent); font-variant-numeric: tabular-nums; }
 .cd-grid span { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .cd-sub { font-size: 14px; color: var(--muted); }
 .cd-today { font-family: var(--f-display); font-size: clamp(24px, 5vw, 34px); color: var(--accent); }
 /* partilhar */
-.share a.btn-primary { text-decoration: none; display: inline-flex; align-items: center; border-radius: 999px; padding: 8px 16px; font-weight: 600; }
+.share { position: relative; }
+.share-btn, .tv-btn { display: inline-flex; align-items: center; gap: 8px; }
+.share-btn svg, .tv-btn svg { width: 20px; height: 20px; flex: none; }
+.share-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: 6px; display: flex; flex-direction: column; min-width: 190px; }
+.share-menu a, .share-menu button { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: none; border: none; color: var(--ink); text-decoration: none; font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
+.share-menu a:hover, .share-menu button:hover { background: var(--line); }
+.share-menu svg { width: 20px; height: 20px; flex: none; }
+.tv-btn { position: absolute; top: 0; right: 0; width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 50%; background: var(--card); box-shadow: var(--shadow); z-index: 2; }
+.hero-top { padding-right: 52px; }
+.my-guess .chip { font-size: 13px; padding: 4px 12px; }
+.my-guess .chip .num { font-size: 17px; }
 /* modo festa (TV) */
 .festa { position: fixed; inset: 0; z-index: 50; overflow: auto; background: var(--paper) linear-gradient(90deg, var(--bg-boy) 0 50%, var(--bg-girl) 50% 100%); padding: 3vw 4vw; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; gap: 3vw; }
 .festa-close { position: absolute; top: 12px; right: 16px; background: var(--card); color: var(--ink); border: 1px solid var(--line); font-size: 22px; width: 44px; height: 44px; padding: 0; }
@@ -306,10 +318,24 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     <div class="countdown" id="countdown" hidden></div>
     <div class="chips" id="chips"></div>
     <div class="row share">
-      <a class="btn-primary" id="shareWa" href="https://wa.me/" target="_blank" rel="noopener noreferrer">Partilhar no WhatsApp</a>
-      <button class="btn-ghost" type="button" id="copyLink">Copiar link</button>
-      <button class="btn-ghost" type="button" id="openFesta">Modo festa (TV)</button>
+      <button class="btn-primary share-btn" type="button" id="shareBtn" aria-haspopup="true" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+        Partilhar
+      </button>
+      <div class="share-menu" id="shareMenu" role="menu" hidden>
+        <a role="menuitem" id="shareWa" href="https://wa.me/" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="#25D366" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.1 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l2 .9c.3.1.5.2.5.3.1.2.1.7-.1 1.2z"/></svg>
+          WhatsApp
+        </a>
+        <button role="menuitem" type="button" id="copyLink">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7"/></svg>
+          Copiar link
+        </button>
+      </div>
     </div>
+    <button class="btn-ghost tv-btn" type="button" id="openFesta" title="Modo festa (TV)" aria-label="Modo festa (TV)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 2l4 5 4-5"/></svg>
+    </button>
   </header>
 
   <div class="reveal" id="reveal" hidden></div>
@@ -633,8 +659,6 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       else chips.push(h("span", { class: "chip", text: "O bebé já deve ter chegado!" }));
       chips.push(h("span", { class: "chip", text: `Data prevista: ${d}/${m}/${y}` }));
     }
-    const total = data.palpites.menino + data.palpites.menina;
-    if (total) chips.push(h("span", { class: "chip" }, h("span", { class: "num", text: String(total) }), total === 1 ? "palpite" : "palpites"));
     $("#chips").replaceChildren(...chips);
 
     const rv = $("#reveal");
@@ -727,14 +751,15 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     $("#pieLabel").textContent = rev ? "Quem acertou?" : (hasNames() ? `${NM().menina} ou ${NM().menino}?` : "Menino ou menina?");
 
     const mg = $("#myGuess");
+    const nChip = h("span", { class: "chip" }, h("span", { class: "num", text: String(total) }), total === 1 ? "palpite" : "palpites");
     if (myVote === "menino" || myVote === "menina") {
-      mg.replaceChildren(
+      mg.replaceChildren(nChip,
         h("span", {}, "O teu palpite: ", h("strong", { text: NM()[myVote] })),
         rev ? h("span", { text: rev === myVote ? " · Acertaste!" : " · Fica para a próxima!" })
             : h("button", { class: "btn-text", type: "button", onclick: openModal }, "mudar"));
     } else if (!rev) {
-      mg.replaceChildren(h("button", { class: "btn-ghost", type: "button", onclick: openModal }, "Dar o meu palpite"));
-    } else mg.replaceChildren();
+      mg.replaceChildren(nChip, h("button", { class: "btn-ghost", type: "button", onclick: openModal }, "Dar o meu palpite"));
+    } else mg.replaceChildren(nChip);
   }
 
   function renderGifts() {
@@ -1246,7 +1271,13 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#game").hidden) closeGame(); });
   $("#festaClose").addEventListener("click", closeFesta);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#festa").hidden) closeFesta(); });
+  const setShare = (open) => { $("#shareMenu").hidden = !open; $("#shareBtn").setAttribute("aria-expanded", String(open)); };
+  $("#shareBtn").addEventListener("click", (e) => { e.stopPropagation(); setShare($("#shareMenu").hidden); });
+  document.addEventListener("click", (e) => { if (!$("#shareMenu").hidden && !e.target.closest("#shareMenu")) setShare(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") setShare(false); });
+  $("#shareWa").addEventListener("click", () => setShare(false));
   $("#copyLink").addEventListener("click", async () => {
+    setShare(false);
     const url = pageUrl();
     try { await navigator.clipboard.writeText(url); toast("Link copiado!"); }
     catch (_) { toast("Copia este link: " + url); }
