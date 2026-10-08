@@ -189,6 +189,51 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .festa-by { font-size: clamp(16px, 1.6vw, 26px); color: var(--muted); }
 @media (max-width: 800px) { .festa { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .baby .eyes, .baby .hand { animation: none; } }
+/* monograma */
+.mono { width: 76px; height: 76px; flex: none; margin-left: auto; overflow: visible; }
+.mono text { font-family: var(--f-display); font-size: 74px; }
+.mono circle { fill: none; stroke: var(--accent); stroke-width: 1.5; opacity: .35; }
+.mono .letter { transform-box: fill-box; transform-origin: center; transform: translateX(var(--shift, 0px)); transition: opacity .8s ease, transform .8s ease; }
+.mono .letter.gone { opacity: 0; transform: scale(.4) rotate(-20deg); }
+@media (max-width: 560px) { .mono { width: 56px; height: 56px; } }
+/* cabo de guerra */
+.tug { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px 14px; }
+.tug-team { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 64px; }
+.tug-name { font-family: var(--f-display); font-size: 18px; }
+.tug-team.b .tug-name { color: var(--boy); }
+.tug-team.g .tug-name { color: var(--girl); }
+.tug-n { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tug-field { position: relative; height: 44px; overflow: hidden; border-radius: 22px; background: linear-gradient(90deg, var(--boy-soft) 0 50%, var(--girl-soft) 50% 100%); }
+.tug-mid { position: absolute; left: 50%; top: 6px; bottom: 6px; border-left: 2px dashed var(--muted); opacity: .5; }
+.tug-rope { position: absolute; left: -50%; right: -50%; top: 50%; height: 8px; margin-top: -4px; border-radius: 4px; background: repeating-linear-gradient(45deg, #c9a46a 0 6px, #a9834a 6px 12px); transition: transform 1.2s cubic-bezier(.3, 1.5, .5, 1); }
+.tug-knot { position: absolute; left: 50%; top: -10px; width: 6px; height: 28px; margin-left: -3px; background: var(--accent); border-radius: 3px; }
+.tug-knot::after { content: ""; position: absolute; left: 6px; top: 0; border-left: 14px solid var(--accent); border-top: 7px solid transparent; border-bottom: 7px solid transparent; }
+.tug-rope.pull { animation: pull .45s ease-in-out 3; }
+@keyframes pull { 50% { margin-left: -5px; } }
+.tug-status { grid-column: 1 / -1; text-align: center; font-size: 14px; color: var(--muted); }
+/* significado dos nomes */
+.names-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.name-card { position: relative; overflow: hidden; border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--line); transition: opacity .6s ease; }
+.name-card.b { background: var(--boy-soft); }
+.name-card.g { background: var(--girl-soft); }
+.name-card .ini { position: absolute; right: 14px; top: -18px; font-family: var(--f-display); font-size: 130px; line-height: 1; opacity: .14; }
+.name-card.b .ini, .name-card.b h3 { color: var(--boy); }
+.name-card.g .ini, .name-card.g h3 { color: var(--girl); }
+.name-card h3 { font-size: 30px; }
+.name-card .mean { font-family: var(--f-display); font-size: 20px; }
+.name-card p { margin: 0; color: var(--muted); max-width: 46ch; }
+.name-card .saint { font-size: 14px; font-weight: 600; }
+.name-card.off { opacity: .35; }
+/* modo festa: cabo de guerra e QR */
+.festa-wide { grid-column: 1 / -1; }
+.festa .tug-name { font-size: clamp(22px, 2.6vw, 44px); }
+.festa .tug-n { font-size: clamp(14px, 1.4vw, 22px); }
+.festa .tug-field { height: clamp(56px, 6vw, 96px); border-radius: 48px; }
+.festa .tug-rope { height: 14px; margin-top: -7px; }
+.festa .tug-knot { top: -18px; height: 50px; width: 8px; margin-left: -4px; }
+.festa .tug-status { font-size: clamp(16px, 1.8vw, 28px); }
+.festa-qr { display: flex; align-items: center; gap: 12px; background: #ffffff; color: #1c1830; border-radius: 20px; padding: 12px 16px 12px 12px; font-size: clamp(13px, 1.2vw, 20px); font-weight: 600; line-height: 1.3; }
+.festa-qr img, .festa-qr canvas { display: block; width: clamp(96px, 9vw, 160px); height: auto; }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .bar i, .choice { transition: none; } }
 @media (max-width: 480px) { .wrap { padding-inline: 16px; padding-block: 28px 56px; } }
@@ -214,6 +259,11 @@ button:disabled { opacity: .55; cursor: not-allowed; }
         <p class="eyebrow" id="occasion">Chá de bebé</p>
         <h1 id="listTitle">Lista de Presentes do Bebé</h1>
       </div>
+      <svg class="mono" id="mono" viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="47"/>
+        <text class="letter" id="monoG" x="20" y="74" fill="var(--girl)" opacity=".9">B</text>
+        <text class="letter" id="monoB" x="47" y="80" fill="var(--boy)" opacity=".9">L</text>
+      </svg>
     </div>
     <p class="note" id="listNote"></p>
     <div class="countdown" id="countdown" hidden></div>
@@ -244,6 +294,19 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       <div class="row my-guess" id="myGuess"></div>
     </div>
   </div>
+
+  <div class="panel" id="tugPanel">
+    <span class="label" id="tugLabel">Cabo de guerra</span>
+    <div class="tug"></div>
+  </div>
+
+  <section class="block" id="namesBlock" hidden>
+    <div class="block-head">
+      <h2>O que querem dizer os nomes</h2>
+      <p>Dois nomes antigos, com santos em dias seguidos: 9 e 10 de agosto.</p>
+    </div>
+    <div class="names-grid" id="namesGrid"></div>
+  </section>
 
   <section class="block" id="singleBlock">
     <div class="block-head">
@@ -323,6 +386,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   <div class="festa-head">
     <div><p class="eyebrow" id="fOccasion"></p><h1 id="fTitle"></h1></div>
     <div class="countdown" id="fCountdown" hidden></div>
+    <div class="festa-qr"><div id="fQr"></div><span>Aponta a câmara<br>do telemóvel<br>para participar</span></div>
   </div>
   <div class="festa-card">
     <span class="label" id="fPieLabel"></span>
@@ -334,10 +398,15 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     <p class="festa-msg" id="fMsg"></p>
     <span class="festa-by" id="fMsgBy"></span>
   </div>
+  <div class="festa-card festa-wide">
+    <span class="label" id="fTugLabel">Cabo de guerra</span>
+    <div class="tug"></div>
+  </div>
 </section>
 <canvas id="confetti" hidden></canvas>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 (() => {
   const $ = (s) => document.querySelector(s);
@@ -472,6 +541,13 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       ? `Olá! Esta é a lista de presentes da ${nm.menina} ou do ${nm.menino}. Escolhe uma prenda e deixa o teu palpite: `
       : "Olá! Esta é a lista de presentes do bebé. Escolhe uma prenda e deixa o teu palpite: ";
     $("#shareWa").href = "https://wa.me/?text=" + encodeURIComponent(shareText + pageUrl());
+    $("#mono").style.display = hasNames() ? "" : "none";
+    $("#monoG").textContent = nm.menina.charAt(0);
+    $("#monoB").textContent = nm.menino.charAt(0);
+    $("#monoG").classList.toggle("gone", c.revelacao === "menino");
+    $("#monoB").classList.toggle("gone", c.revelacao === "menina");
+    $("#monoG").style.setProperty("--shift", c.revelacao === "menina" ? "14px" : "0px");
+    $("#monoB").style.setProperty("--shift", c.revelacao === "menino" ? "-13px" : "0px");
     tick();
 
     const chips = [];
@@ -677,8 +753,58 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     }) : [h("li", {}, h("p", { class: "who", text: "Ainda não há mensagens. Sê a primeira pessoa a escrever!" }))]));
   }
 
+  // ---------- cabo de guerra ----------
+  function renderTug() {
+    const nm = NM(), rev = data.config.revelacao;
+    const { menino: b, menina: g } = data.palpites, total = b + g, diff = g - b;
+    const label = `Equipa ${nm.menino} vs. Equipa ${nm.menina}`;
+    const status = rev ? `Ganhou a Equipa ${nm[rev]}!`
+      : !total ? "Ainda ninguém puxou a corda. Dá o teu palpite!"
+      : diff === 0 ? "Empate! A corda está ao meio."
+      : `A Equipa ${diff > 0 ? nm.menina : nm.menino} está a ganhar por ${Math.abs(diff)} ${Math.abs(diff) === 1 ? "palpite" : "palpites"}.`;
+    const ratio = rev ? (rev === "menina" ? 1 : -1) : total ? diff / total : 0;
+    document.querySelectorAll(".tug").forEach((el) => {
+      if (!el.firstChild) {
+        el.append(
+          h("div", { class: "tug-team b" }, h("span", { class: "tug-name" }), h("span", { class: "tug-n" })),
+          h("div", { class: "tug-field" }, h("div", { class: "tug-mid" }), h("div", { class: "tug-rope" }, h("span", { class: "tug-knot" }))),
+          h("div", { class: "tug-team g" }, h("span", { class: "tug-name" }), h("span", { class: "tug-n" })),
+          h("div", { class: "tug-status" }));
+      }
+      const [tb, , tg] = el.children;
+      tb.children[0].textContent = nm.menino;
+      tb.children[1].textContent = `${b} ${b === 1 ? "palpite" : "palpites"}`;
+      tg.children[0].textContent = nm.menina;
+      tg.children[1].textContent = `${g} ${g === 1 ? "palpite" : "palpites"}`;
+      el.querySelector(".tug-status").textContent = status;
+      const rope = el.querySelector(".tug-rope");
+      rope.style.transform = `translateX(${(ratio * 19).toFixed(2)}%)`;
+      const key = `${b}-${g}-${rev}`;
+      if (el.dataset.last && el.dataset.last !== key) { rope.classList.remove("pull"); void rope.offsetWidth; rope.classList.add("pull"); }
+      el.dataset.last = key;
+    });
+    $("#tugLabel").textContent = label;
+    $("#fTugLabel").textContent = label;
+  }
+
+  // ---------- significado dos nomes ----------
+  const MEANINGS = {
+    "benedita": { mean: "“Abençoada”", text: "Vem do latim Benedicta, “bem-dita”: aquela de quem se diz bem. É o feminino de Bento.", saint: "Santa Teresa Benedita da Cruz · 9 de agosto" },
+    "lourenço": { mean: "“Coroado de louros”", text: "Vem do latim Laurentius, “de Laurento”, cidade ligada ao loureiro, a planta das coroas dos vencedores.", saint: "São Lourenço · 10 de agosto" },
+  };
+  function renderNames() {
+    const nm = NM(), rev = data.config.revelacao;
+    const mb = MEANINGS[nm.menino.trim().toLowerCase()], mg = MEANINGS[nm.menina.trim().toLowerCase()];
+    if (!hasNames() || !mb || !mg) { $("#namesBlock").hidden = true; return; }
+    $("#namesBlock").hidden = false;
+    const card = (k, cls, name, m) => h("article", { class: `name-card ${cls}` + (rev && rev !== k ? " off" : "") },
+      h("span", { class: "ini", "aria-hidden": "true", text: name.charAt(0) }),
+      h("h3", { text: name }), h("div", { class: "mean", text: m.mean }), h("p", { text: m.text }), h("div", { class: "saint", text: m.saint }));
+    $("#namesGrid").replaceChildren(card("menino", "b", nm.menino, mb), card("menina", "g", nm.menina, mg));
+  }
+
   // ---------- modo festa (para TV) ----------
-  let festaMsgI = 0, festaTimer = null;
+  let festaMsgI = 0, festaTimer = null, festaRefresh = null;
   function showFestaMsg() {
     const list = data.mensagens;
     const m = list.length ? list[festaMsgI % list.length] : null;
@@ -710,6 +836,10 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     if (location.hash !== "#festa") history.replaceState(null, "", "#festa");
     try { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p) p.catch(() => {}); } catch (_) {}
     renderFesta(); tick();
+    if (!$("#fQr").childElementCount && window.QRCode) {
+      try { new QRCode($("#fQr"), { text: pageUrl(), width: 256, height: 256, colorDark: "#1c1830", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M }); } catch (_) {}
+    }
+    clearInterval(festaRefresh); festaRefresh = setInterval(refresh, 8000); // a corda mexe-se quase ao vivo
     clearInterval(festaTimer);
     festaTimer = setInterval(() => {
       festaMsgI++; const el = $("#fMsg"); el.style.opacity = 0;
@@ -718,12 +848,12 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   }
   function closeFesta() {
     $("#festa").hidden = true; document.body.style.overflow = "";
-    clearInterval(festaTimer);
+    clearInterval(festaTimer); clearInterval(festaRefresh);
     if (location.hash === "#festa") history.replaceState(null, "", location.pathname + location.search);
     try { if (document.fullscreenElement) document.exitFullscreen(); } catch (_) {}
   }
 
-  function render() { renderHeader(); renderPie(); renderGifts(); renderMessages(); renderFesta(); }
+  function render() { renderHeader(); renderPie(); renderTug(); renderNames(); renderGifts(); renderMessages(); renderFesta(); }
 
   // ---------- ações ----------
   async function reserve(id) {
