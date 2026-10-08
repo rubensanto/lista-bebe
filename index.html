@@ -234,6 +234,43 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .festa .tug-status { font-size: clamp(16px, 1.8vw, 28px); }
 .festa-qr { display: flex; align-items: center; gap: 12px; background: #ffffff; color: #1c1830; border-radius: 20px; padding: 12px 16px 12px 12px; font-size: clamp(13px, 1.2vw, 20px); font-weight: 600; line-height: 1.3; }
 .festa-qr img, .festa-qr canvas { display: block; width: clamp(96px, 9vw, 160px); height: auto; }
+/* jogo */
+.game-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.game-cta { justify-content: center; }
+.top5 { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; counter-reset: top; }
+.top5 li { display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
+.top5 li::before { counter-increment: top; content: counter(top); font-family: var(--f-display); width: 1.4em; color: var(--muted); }
+.top5 li.who::before { content: none; }
+.top5 .pts { margin-left: auto; font-family: var(--f-display); color: var(--accent); }
+.top5 .team { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.festa-top { flex-direction: row; flex-wrap: wrap; gap: 1vw 4vw; font-size: clamp(16px, 1.8vw, 28px); }
+.festa-top .pts { margin-left: 8px; }
+.tug-hint { font-size: 12px; text-align: center; }
+.game { position: fixed; inset: 0; z-index: 60; background: var(--paper) linear-gradient(90deg, var(--bg-boy) 0 50%, var(--bg-girl) 50% 100%); touch-action: none; user-select: none; -webkit-user-select: none; }
+.game canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.game-hud { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); left: 16px; right: 76px; display: flex; justify-content: space-between; font-family: var(--f-display); font-size: 28px; color: var(--ink); pointer-events: none; font-variant-numeric: tabular-nums; }
+.game .festa-close { top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 2; }
+.game-panel { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(380px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto; background: var(--card); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 12px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+.game-panel h2 { font-size: 28px; }
+.game-panel p { margin: 0; }
+.game-panel .big { font-size: 64px; color: var(--accent); }
+.team-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.team-pick button { border-radius: 16px; padding: 12px 8px; font-family: var(--f-display); font-size: 18px; font-weight: 400; border: 2px solid transparent; }
+.team-pick .b { background: var(--boy-soft); color: var(--boy); }
+.team-pick .g { background: var(--girl-soft); color: var(--girl); }
+.team-pick button[aria-pressed="true"] { border-color: currentColor; }
+/* reações ao vivo */
+.react-bar { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 15; display: flex; gap: 2px; padding: 6px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow); }
+.react-bar button { font-size: 22px; line-height: 1; padding: 8px 10px; background: transparent; border-radius: 999px; transition: transform .12s ease; }
+.react-bar button:active { transform: scale(1.3); }
+.floaters { position: fixed; inset: 0; pointer-events: none; z-index: 55; overflow: hidden; }
+.floaters span { position: absolute; bottom: -70px; font-size: 34px; animation: floatUp 3.2s ease-out forwards; }
+body.festa-open .floaters span { font-size: clamp(44px, 5vw, 96px); }
+@keyframes floatUp { 0% { transform: translate(0, 0) scale(.6); opacity: 0; } 10% { opacity: 1; } 100% { transform: translate(var(--dx, 0px), -110vh) scale(1.15); opacity: 0; } }
+body.festa-open .react-bar, body.game-open .react-bar { display: none; }
+.toast { bottom: 84px; }
+.wrap { padding-bottom: 110px; }
+@media (prefers-reduced-motion: reduce) { .floaters span { animation-duration: .01s; } }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .bar i, .choice { transition: none; } }
 @media (max-width: 480px) { .wrap { padding-inline: 16px; padding-block: 28px 56px; } }
@@ -298,7 +335,22 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   <div class="panel" id="tugPanel">
     <span class="label" id="tugLabel">Cabo de guerra</span>
     <div class="tug"></div>
+    <span class="who tug-hint">Cada palpite vale 10 pontos; o jogo “Apanha as chupetas” soma o resto.</span>
   </div>
+
+  <section class="block" id="gameBlock">
+    <div class="block-head">
+      <h2>Apanha as chupetas</h2>
+      <p>30 segundos para apanhar tudo o que conseguires. Os teus pontos somam para a tua equipa e puxam a corda!</p>
+    </div>
+    <div class="game-row">
+      <div class="panel game-cta">
+        <div class="row"><button class="btn-primary" type="button" id="playBtn">Jogar</button><span class="who" id="myBest"></span></div>
+        <span class="who">Chupeta +1 · Estrela +3 · Fralda suja −2</span>
+      </div>
+      <div class="panel"><span class="label">Top 5</span><ol class="top5" id="top5"></ol></div>
+    </div>
+  </section>
 
   <section class="block" id="namesBlock" hidden>
     <div class="block-head">
@@ -402,7 +454,24 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     <span class="label" id="fTugLabel">Cabo de guerra</span>
     <div class="tug"></div>
   </div>
+  <div class="festa-card festa-wide">
+    <span class="label">Top 5 · Apanha as chupetas</span>
+    <ol class="top5 festa-top" id="fTop5"></ol>
+  </div>
 </section>
+<div class="game" id="game" hidden>
+  <canvas id="gameCanvas"></canvas>
+  <div class="game-hud"><span id="gScore">0 pts</span><span id="gTime">30s</span></div>
+  <div class="game-panel" id="gPanel"></div>
+  <button class="festa-close" type="button" id="gameClose" aria-label="Fechar o jogo">×</button>
+</div>
+<div class="react-bar" id="reactBar" role="group" aria-label="Reagir ao vivo">
+  <button type="button" data-r="azul" aria-label="Coração azul">💙</button>
+  <button type="button" data-r="rosa" aria-label="Coração rosa">💗</button>
+  <button type="button" data-r="bebe" aria-label="Bebé">👶</button>
+  <button type="button" data-r="festa" aria-label="Festa">🎉</button>
+</div>
+<div class="floaters" id="floaters" aria-hidden="true"></div>
 <canvas id="confetti" hidden></canvas>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -442,6 +511,10 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     addGift: (gift, desc, multi, who, give, code) => ["add_gift", { p_nome: gift, p_detalhes: desc, p_multi: multi, p_quem: who, p_dar: give, p_codigo: code || "" }],
     vote: (choice, name) => ["vote", { p_palpite: choice, p_nome: name }],
     postMessage: (name, text, code) => ["post_message", { p_nome: name, p_texto: text, p_codigo: code || "" }],
+    react: (k) => ["react", { p_emoji: k }],
+    getReactions: (since) => ["get_reactions", { p_since: since }],
+    startGame: (name, team) => ["start_game", { p_nome: name, p_equipa: team }],
+    submitScore: (token, pts) => ["submit_score", { p_token: token, p_pontos: pts }],
   };
   async function call(fn, ...args) {
     const [rpc, body] = RPC[fn](...args);
@@ -756,12 +829,14 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   // ---------- cabo de guerra ----------
   function renderTug() {
     const nm = NM(), rev = data.config.revelacao;
-    const { menino: b, menina: g } = data.palpites, total = b + g, diff = g - b;
+    const { menino: b, menina: g } = data.palpites;
+    const jg = (data.jogo && data.jogo.equipa) || { menino: 0, menina: 0 };
+    const fb = b * 10 + (jg.menino || 0), fg = g * 10 + (jg.menina || 0), total = fb + fg, diff = fg - fb;
     const label = `Equipa ${nm.menino} vs. Equipa ${nm.menina}`;
     const status = rev ? `Ganhou a Equipa ${nm[rev]}!`
-      : !total ? "Ainda ninguém puxou a corda. Dá o teu palpite!"
+      : !total ? "Ainda ninguém puxou a corda. Dá o teu palpite ou joga!"
       : diff === 0 ? "Empate! A corda está ao meio."
-      : `A Equipa ${diff > 0 ? nm.menina : nm.menino} está a ganhar por ${Math.abs(diff)} ${Math.abs(diff) === 1 ? "palpite" : "palpites"}.`;
+      : `A Equipa ${diff > 0 ? nm.menina : nm.menino} está à frente por ${Math.abs(diff)} ${Math.abs(diff) === 1 ? "ponto" : "pontos"}.`;
     const ratio = rev ? (rev === "menina" ? 1 : -1) : total ? diff / total : 0;
     document.querySelectorAll(".tug").forEach((el) => {
       if (!el.firstChild) {
@@ -773,18 +848,219 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       }
       const [tb, , tg] = el.children;
       tb.children[0].textContent = nm.menino;
-      tb.children[1].textContent = `${b} ${b === 1 ? "palpite" : "palpites"}`;
+      tb.children[1].textContent = `${fb} pts`;
       tg.children[0].textContent = nm.menina;
-      tg.children[1].textContent = `${g} ${g === 1 ? "palpite" : "palpites"}`;
+      tg.children[1].textContent = `${fg} pts`;
       el.querySelector(".tug-status").textContent = status;
       const rope = el.querySelector(".tug-rope");
       rope.style.transform = `translateX(${(ratio * 19).toFixed(2)}%)`;
-      const key = `${b}-${g}-${rev}`;
+      const key = `${fb}-${fg}-${rev}`;
       if (el.dataset.last && el.dataset.last !== key) { rope.classList.remove("pull"); void rope.offsetWidth; rope.classList.add("pull"); }
       el.dataset.last = key;
     });
     $("#tugLabel").textContent = label;
     $("#fTugLabel").textContent = label;
+  }
+
+  // ---------- top 5 do jogo ----------
+  function renderTop() {
+    const top = (data.jogo && data.jogo.top) || [];
+    const items = top.length
+      ? top.map((t) => h("li", {},
+          h("span", { class: "team", style: `background: var(--${t.equipa === "menino" ? "boy" : "girl"})` }),
+          h("span", { text: t.nome }), h("span", { class: "pts", text: String(t.pontos) })))
+      : [h("li", { class: "who", text: "Ainda ninguém jogou. Sê o primeiro!" })];
+    $("#top5").replaceChildren(...items);
+    $("#fTop5").replaceChildren(...items.map((n) => n.cloneNode(true)));
+    const me = String(claimDraft || "").trim().toLowerCase();
+    const mine = me && top.find((t) => t.nome.trim().toLowerCase() === me);
+    $("#myBest").textContent = mine ? `O teu melhor: ${mine.pontos} pontos` : "";
+  }
+
+  // ---------- reações ao vivo ----------
+  const REACT = { azul: "💙", rosa: "💗", bebe: "👶", festa: "🎉" };
+  function floatEmoji(k) {
+    if (reduceMotion) return;
+    const el = document.createElement("span");
+    el.textContent = REACT[k] || "💗";
+    el.style.left = (4 + Math.random() * 88).toFixed(1) + "%";
+    el.style.setProperty("--dx", ((Math.random() - .5) * 140).toFixed(0) + "px");
+    el.style.animationDuration = (2.6 + Math.random() * 1.6).toFixed(2) + "s";
+    el.addEventListener("animationend", () => el.remove());
+    $("#floaters").append(el);
+  }
+  let lastReact = 0, reactSince = null, reactTimer = null;
+  const seenReacts = new Set();
+  document.querySelectorAll("#reactBar [data-r]").forEach((b) => b.addEventListener("click", () => {
+    const now = Date.now();
+    if (now - lastReact < 350) return;
+    lastReact = now;
+    floatEmoji(b.dataset.r);
+    call("react", b.dataset.r).catch(() => {});
+  }));
+  async function pollReactions() {
+    try {
+      const first = reactSince === null;
+      const r = await call("getReactions", reactSince);
+      reactSince = r.now;
+      (r.items || []).forEach((it, i) => {
+        if (seenReacts.has(it.id)) return;
+        seenReacts.add(it.id);
+        if (!first) setTimeout(() => floatEmoji(it.e), i * 110);
+      });
+      if (seenReacts.size > 3000) seenReacts.clear();
+    } catch (_) {}
+  }
+
+  // ---------- jogo: apanha as chupetas ----------
+  const G = { running: false, team: null, name: null, token: null, raf: 0, cleanup: null };
+  function openGame() {
+    document.body.classList.add("game-open");
+    $("#game").hidden = false;
+    $("#gScore").textContent = "0 pts"; $("#gTime").textContent = "30s";
+    const ctx = $("#gameCanvas").getContext("2d"); ctx.clearRect(0, 0, 99999, 99999);
+    gameSetup();
+  }
+  function closeGame() {
+    G.running = false; cancelAnimationFrame(G.raf);
+    if (G.cleanup) G.cleanup();
+    document.body.classList.remove("game-open");
+    $("#game").hidden = true;
+  }
+  function gameSetup() {
+    const nm = NM();
+    if (!G.team) G.team = (myVote === "menino" || myVote === "menina") ? myVote : LS.get("equipa", null);
+    if (G.name == null) G.name = claimDraft || "";
+    const name = h("input", { id: "gName", maxlength: "40", placeholder: "Ex.: Tia Ana", autocomplete: "name", oninput: (e) => (G.name = e.target.value) });
+    name.value = G.name;
+    const pick = (k, cls) => h("button", { type: "button", class: cls, "aria-pressed": String(G.team === k), onclick: () => { G.team = k; gameSetup(); } }, "Equipa " + nm[k]);
+    $("#gPanel").hidden = false;
+    $("#gPanel").replaceChildren(
+      h("h2", { text: "Apanha as chupetas" }),
+      h("p", { class: "who", text: "Mexe o berço com o dedo (ou com as setas) e apanha o que cai. Tens 30 segundos!" }),
+      h("div", { class: "field", style: "text-align: left" }, h("label", { for: "gName", text: "O teu nome" }), name),
+      h("div", { class: "field", style: "text-align: left" }, h("label", { text: "Jogas pela" }), h("div", { class: "team-pick" }, pick("menino", "b"), pick("menina", "g"))),
+      h("p", { class: "who", text: "Chupeta +1 · Estrela +3 · Fralda suja −2" }),
+      h("button", { class: "btn-primary", type: "button", onclick: startGame }, "Começar"));
+  }
+  async function startGame() {
+    const name = String(G.name || "").trim();
+    if (!name) { toast("Escreve o teu nome para jogar."); $("#gName")?.focus(); return; }
+    if (!G.team) { toast("Escolhe a tua equipa."); return; }
+    claimDraft = name; LS.set("nome", name); LS.set("equipa", G.team);
+    let r;
+    try { r = await call("startGame", name, G.team); } catch (_) { toast("Não foi possível começar. Verifica a ligação."); return; }
+    if (!r.ok) { toast(r.reason === "wait" ? "Espera uns segundos e tenta outra vez." : "Não foi possível começar."); return; }
+    G.token = r.token;
+    for (const n of ["3", "2", "1"]) {
+      $("#gPanel").replaceChildren(h("div", { class: "big", text: n }));
+      await new Promise((res) => setTimeout(res, 800));
+      if ($("#game").hidden) return;
+    }
+    $("#gPanel").hidden = true;
+    runGame();
+  }
+  function runGame() {
+    const cv = $("#gameCanvas"), ctx = cv.getContext("2d");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const W = () => innerWidth, H = () => innerHeight;
+    const resize = () => { cv.width = W() * dpr; cv.height = H() * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+    resize();
+    const cs = getComputedStyle(document.documentElement);
+    const col = { boy: cs.getPropertyValue("--boy").trim(), girl: cs.getPropertyValue("--girl").trim(), accent: cs.getPropertyValue("--accent").trim(), ink: cs.getPropertyValue("--ink").trim() };
+    const teamCol = G.team === "menino" ? col.boy : col.girl;
+    const basket = { x: W() / 2, w: Math.min(130, W() * 0.3), h: 34 };
+    const DUR = 30000;
+    let items = [], pops = [], score = 0, spawnT = 0, keys = {};
+    let last = performance.now(); const start = last;
+    const move = (x) => { basket.x = Math.max(basket.w / 2, Math.min(W() - basket.w / 2, x)); };
+    const onPtr = (e) => move(e.clientX);
+    const onKey = (e) => { if (e.key === "ArrowLeft" || e.key === "ArrowRight") { keys[e.key] = e.type === "keydown"; e.preventDefault(); } };
+    cv.addEventListener("pointermove", onPtr); cv.addEventListener("pointerdown", onPtr);
+    window.addEventListener("keydown", onKey); window.addEventListener("keyup", onKey); window.addEventListener("resize", resize);
+    G.cleanup = () => {
+      cv.removeEventListener("pointermove", onPtr); cv.removeEventListener("pointerdown", onPtr);
+      window.removeEventListener("keydown", onKey); window.removeEventListener("keyup", onKey); window.removeEventListener("resize", resize);
+      G.cleanup = null;
+    };
+    const spawn = (elapsed) => {
+      const r = Math.random(), kind = r < .1 ? "star" : r < .24 ? "poop" : "paci";
+      items.push({ kind, x: 24 + Math.random() * (W() - 48), y: -30, vy: 170 + elapsed / 1000 * 9 + Math.random() * 90,
+        rot: Math.random() * 6, vr: (Math.random() - .5) * 3, c: Math.random() < .5 ? col.boy : col.girl });
+    };
+    const drawPaci = (it) => {
+      ctx.save(); ctx.translate(it.x, it.y); ctx.rotate(it.rot);
+      ctx.strokeStyle = it.c; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 15, 9, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = it.c; ctx.beginPath(); ctx.ellipse(0, 0, 19, 12, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    };
+    const drawEmoji = (it, ch) => {
+      ctx.save(); ctx.translate(it.x, it.y); ctx.rotate(it.rot * .3);
+      ctx.font = "30px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(ch, 0, 0); ctx.restore();
+    };
+    const drawBasket = (y) => {
+      const x = basket.x - basket.w / 2;
+      ctx.fillStyle = teamCol; ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, basket.w, basket.h, 12); else ctx.rect(x, y, basket.w, basket.h);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.75)"; ctx.lineWidth = 3;
+      for (let i = 1; i < 6; i++) { const bx = x + basket.w * i / 6; ctx.beginPath(); ctx.moveTo(bx, y + 7); ctx.lineTo(bx, y + basket.h - 7); ctx.stroke(); }
+    };
+    const finish = async () => {
+      G.running = false; if (G.cleanup) G.cleanup();
+      const nm = NM();
+      $("#gPanel").hidden = false;
+      $("#gPanel").replaceChildren(h("h2", { text: "Fim!" }), h("div", { class: "big", text: String(score) }), h("p", { class: "who", text: "A guardar a tua pontuação…" }));
+      let msg;
+      try {
+        const r = await call("submitScore", G.token, score);
+        if (r.ok) {
+          msg = score >= r.best ? `Novo recorde! A Equipa ${nm[G.team]} conta com os teus ${r.best} pontos.` : `O teu recorde continua a ser ${r.best} pontos. Tenta outra vez!`;
+          confetti([G.team === "menino" ? "--boy" : "--girl", "--accent"]);
+        } else msg = "Não foi possível guardar esta pontuação.";
+      } catch (_) { msg = "Não foi possível guardar. Verifica a ligação."; }
+      $("#gPanel").replaceChildren(h("h2", { text: "Fim!" }), h("div", { class: "big", text: String(score) }), h("p", { class: "who", text: msg }),
+        h("div", { class: "row", style: "justify-content: center" },
+          h("button", { class: "btn-primary", type: "button", onclick: gameSetup }, "Jogar outra vez"),
+          h("button", { class: "btn-ghost", type: "button", onclick: closeGame }, "Sair")));
+      refresh();
+    };
+    const frame = (now) => {
+      if (!G.running) return;
+      const dt = Math.min(.05, (now - last) / 1000); last = now;
+      const elapsed = now - start, left = Math.max(0, DUR - elapsed);
+      if (keys.ArrowLeft) move(basket.x - 560 * dt);
+      if (keys.ArrowRight) move(basket.x + 560 * dt);
+      spawnT -= dt;
+      if (spawnT <= 0) { spawn(elapsed); spawnT = Math.max(.28, .6 - elapsed / 1000 * .011); }
+      ctx.clearRect(0, 0, W(), H());
+      const by = H() - 80;
+      items = items.filter((it) => {
+        it.y += it.vy * dt; it.rot += it.vr * dt;
+        if (it.y > by - 10 && it.y < by + basket.h && Math.abs(it.x - basket.x) < basket.w / 2 + 12) {
+          const pts = it.kind === "star" ? 3 : it.kind === "poop" ? -2 : 1;
+          score = Math.max(0, score + pts);
+          pops.push({ x: it.x, y: by - 16, t: 0, txt: (pts > 0 ? "+" : "") + pts, c: pts > 0 ? col.accent : col.ink });
+          return false;
+        }
+        if (it.y > H() + 40) return false;
+        if (it.kind === "paci") drawPaci(it); else drawEmoji(it, it.kind === "star" ? "⭐" : "💩");
+        return true;
+      });
+      drawBasket(by);
+      pops = pops.filter((p) => {
+        p.t += dt; ctx.globalAlpha = Math.max(0, 1 - p.t); ctx.fillStyle = p.c;
+        ctx.font = "bold 22px Figtree, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.fillText(p.txt, p.x, p.y - p.t * 40);
+        ctx.globalAlpha = 1; return p.t < 1;
+      });
+      $("#gScore").textContent = score + " pts";
+      $("#gTime").textContent = Math.ceil(left / 1000) + "s";
+      if (left <= 0) { finish(); return; }
+      G.raf = requestAnimationFrame(frame);
+    };
+    G.running = true;
+    G.raf = requestAnimationFrame(frame);
   }
 
   // ---------- significado dos nomes ----------
@@ -832,7 +1108,8 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     showFestaMsg();
   }
   function openFesta() {
-    $("#festa").hidden = false; document.body.style.overflow = "hidden";
+    $("#festa").hidden = false; document.body.style.overflow = "hidden"; document.body.classList.add("festa-open");
+    clearInterval(reactTimer); reactSince = null; pollReactions(); reactTimer = setInterval(pollReactions, 1500);
     if (location.hash !== "#festa") history.replaceState(null, "", "#festa");
     try { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p) p.catch(() => {}); } catch (_) {}
     renderFesta(); tick();
@@ -847,13 +1124,14 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     }, 8000);
   }
   function closeFesta() {
-    $("#festa").hidden = true; document.body.style.overflow = "";
+    $("#festa").hidden = true; document.body.style.overflow = ""; document.body.classList.remove("festa-open");
+    clearInterval(reactTimer);
     clearInterval(festaTimer); clearInterval(festaRefresh);
     if (location.hash === "#festa") history.replaceState(null, "", location.pathname + location.search);
     try { if (document.fullscreenElement) document.exitFullscreen(); } catch (_) {}
   }
 
-  function render() { renderHeader(); renderPie(); renderTug(); renderNames(); renderGifts(); renderMessages(); renderFesta(); }
+  function render() { renderHeader(); renderPie(); renderTug(); renderTop(); renderNames(); renderGifts(); renderMessages(); renderFesta(); }
 
   // ---------- ações ----------
   async function reserve(id) {
@@ -963,6 +1241,9 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   });
 
   $("#openFesta").addEventListener("click", openFesta);
+  $("#playBtn").addEventListener("click", openGame);
+  $("#gameClose").addEventListener("click", closeGame);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#game").hidden) closeGame(); });
   $("#festaClose").addEventListener("click", closeFesta);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#festa").hidden) closeFesta(); });
   $("#copyLink").addEventListener("click", async () => {
