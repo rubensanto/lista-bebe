@@ -107,6 +107,9 @@ section.block { display: flex; flex-direction: column; gap: 16px; }
 .count { display: inline-flex; align-items: baseline; gap: 4px; font-family: var(--f-display); color: var(--accent); }
 .count b { font-size: 26px; font-weight: 400; line-height: 1; font-variant-numeric: tabular-nums; }
 .count span { font-family: var(--f-body); font-size: 13px; color: var(--muted); }
+.qty { display: inline-flex; align-items: center; gap: 2px; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
+.qty button { width: 32px; height: 32px; padding: 0; border-radius: 50%; background: var(--accent-soft); color: var(--ink); font-size: 18px; line-height: 1; }
+.qty span { min-width: 30px; text-align: center; font-family: var(--f-display); font-size: 18px; font-variant-numeric: tabular-nums; }
 .names { display: flex; flex-wrap: wrap; gap: 6px; }
 .names span { font-size: 12px; padding: 2px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); }
 
@@ -416,7 +419,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   <section class="block" id="singleBlock">
     <div class="block-head">
       <h2>Só precisamos de um</h2>
-      <p>Quando alguém escolhe um destes, fica reservado e mais ninguém o pode escolher.</p>
+      <p>Quando alguém escolhe um destes, fica reservado e mais ninguém o pode escolher. Os que ainda estão livres aparecem primeiro.</p>
     </div>
     <ul class="gifts" id="singleList"></ul>
   </section>
@@ -424,7 +427,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   <section class="block" id="multiBlock">
     <div class="block-head">
       <h2>Quantos mais, melhor</h2>
-      <p>Destes, várias pessoas podem oferecer. Regista o teu e vê quantas pessoas já vão dar.</p>
+      <p>Destes, várias pessoas podem oferecer, e cada uma escolhe quantos dá. Os que têm menos gente a oferecer aparecem primeiro.</p>
     </div>
     <ul class="gifts" id="multiList"></ul>
   </section>
@@ -543,6 +546,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   let data = { config: {}, gifts: [], palpites: { menino: 0, menina: 0, nomes: { menino: [], menina: [] } }, mensagens: [] }, loaded = false;
   let openClaim = null, claimDraft = LS.get("nome", ""), codeDraft = LS.get("codigo", "");
   let codes = LS.get("reservas", {});           // id do presente -> código da reserva
+  let qtys = LS.get("quantidades", {}), qtyDraft = 1;   // id do presente -> quantas vou dar
   let myVote = LS.get("palpite", null);         // "menino" | "menina" | "skip"
   let token = LS.get("token", null);
   if (!token) {
@@ -566,7 +570,8 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     getData: () => ["get_data", {}],
     entrar: (name, force) => ["entrar", { p_nome: name, p_forcar: !!force }],
     oMeu: (key, codigos) => ["o_meu", { p_chave: key, p_codigos: codigos || [] }],
-    reserve: (id, code) => ["reserve", { p_prenda: id, p_chave: me && me.chave, p_codigo: code || "" }],
+    reserve: (id, code, qty) => ["reserve", { p_prenda: id, p_chave: me && me.chave, p_codigo: code || "", p_quantidade: qty || 1 }],
+    setQuantity: (code, n) => ["set_quantity", { p_code: code || "", p_quantidade: n }],
     cancelReservation: (code) => ["cancel_reservation", { p_code: code || "" }],
     addGift: (gift, desc, multi, give, code) => ["add_gift", { p_nome: gift, p_detalhes: desc, p_multi: multi, p_chave: me && me.chave, p_dar: give, p_codigo: code || "" }],
     vote: (choice) => ["vote", { p_palpite: choice, p_chave: me && me.chave }],
@@ -639,6 +644,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     if (key) setMe({ nome: r.nome, chave: key.replace(/[^A-Za-z0-9]/g, "").toUpperCase() });
     meInfo = r;
     codes = {}; (r.reservas || []).forEach((x) => (codes[x.prenda] = x.codigo)); LS.set("reservas", codes);
+    qtys = {}; (r.reservas || []).forEach((x) => (qtys[x.prenda] = x.quantidade || 1)); LS.set("quantidades", qtys);
     if (r.palpite) { myVote = r.palpite; LS.set("palpite", r.palpite); }
     else if (myVote === "menino" || myVote === "menina") { myVote = null; LS.set("palpite", null); }
     if (r.equipa) LS.set("equipa", r.equipa);
@@ -767,7 +773,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       data.config.revelacao ? null : h("button", { class: "btn-text", type: "button", onclick: () => { closeMe(); openModal(); } }, r.palpite ? "mudar" : "dar palpite")));
     rows.push(h("div", { class: "me-row col" }, h("span", { class: "label", text: "Prendas" }),
       r.reservas.length
-        ? h("ul", { class: "me-gifts" }, r.reservas.map((x) => h("li", {}, h("span", { text: x.nome }),
+        ? h("ul", { class: "me-gifts" }, r.reservas.map((x) => h("li", {}, h("span", { text: x.quantidade > 1 ? `${x.nome} ×${x.quantidade}` : x.nome }),
             h("button", { class: "btn-text", type: "button", onclick: async (e) => { e.currentTarget.disabled = true; await cancel(x.prenda); openMine(); } }, "cancelar"))))
         : h("span", { class: "who", text: "Ainda não escolheste nenhuma." })));
     rows.push(h("div", { class: "me-row" }, h("span", { class: "label", text: "Jogo" }),
@@ -965,9 +971,11 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   }
 
   function renderGifts() {
-    const singles = data.gifts.filter((g) => !g.multi), multis = data.gifts.filter((g) => g.multi);
+    // livres primeiro (os reservados vão para o fim); nos de vários, primeiro os que têm menos gente a oferecer
+    const singles = data.gifts.filter((g) => !g.multi).sort((a, b) => (a.count > 0) - (b.count > 0));
+    const multis = data.gifts.filter((g) => g.multi).sort((a, b) => a.count - b.count || (a.units || 0) - (b.units || 0));
     const sTaken = singles.filter((g) => g.count > 0).length;
-    const mTotal = multis.reduce((a, g) => a + g.count, 0);
+    const mTotal = multis.reduce((a, g) => a + (g.units || g.count), 0);
     $("#giftsBig").replaceChildren(String(sTaken), h("small", { text: `de ${singles.length} reservados` }));
     $("#barFill").style.width = singles.length ? (sTaken / singles.length) * 100 + "%" : "0";
     $("#giftsSub").textContent = multis.length
@@ -1007,11 +1015,15 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     if (g.multi) {
       li.append(h("div", { class: "count" },
         h("b", { text: String(g.count) }),
-        h("span", { text: g.count === 1 ? "pessoa vai oferecer" : "pessoas vão oferecer" })));
+        h("span", { text: (g.count === 1 ? "pessoa vai oferecer" : "pessoas vão oferecer") + ((g.units || 0) > g.count ? ` · ${g.units} no total` : "") })));
     }
 
     const actions = h("div", { class: "actions" });
-    if (mine) {
+    if (mine && g.multi) {
+      actions.append(h("div", { class: "row" },
+        h("span", { class: "who", text: "Vais oferecer" }), stepper(qtys[g.id] || 1, (n) => setQty(g.id, n), working),
+        h("button", { class: "btn-text", type: "button", disabled: working, onclick: () => cancel(g.id) }, "Cancelar")));
+    } else if (mine) {
       actions.append(h("div", { class: "row" },
         h("span", { class: "who", text: "Vais oferecer este presente." }),
         h("button", { class: "btn-text", type: "button", disabled: working, onclick: () => cancel(g.id) }, working ? "A cancelar…" : "Cancelar")));
@@ -1032,16 +1044,25 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
         code.value = codeDraft;
         actions.append(h("div", { class: "field" }, h("label", { for: "claimCode", text: "Código do evento" }), code));
       }
+      if (g.multi) actions.append(h("div", { class: "row" }, h("span", { class: "who", text: "Quantos vais dar?" }),
+        stepper(qtyDraft, (n) => { qtyDraft = n; render(); }, working)));
       actions.append(h("div", { class: "row" },
         h("button", { class: "btn-primary", type: "button", disabled: working, onclick: () => reserve(g.id) }, working ? "A guardar…" : (g.multi ? "Confirmar" : "Confirmar reserva")),
         h("button", { class: "btn-ghost", type: "button", disabled: working, onclick: () => { openClaim = null; render(); } }, "Voltar")));
     } else {
       actions.append(h("div", { class: "row" },
-        h("button", { class: "btn-primary", type: "button", onclick: () => { openClaim = g.id; render(); } },
+        h("button", { class: "btn-primary", type: "button", onclick: () => { openClaim = g.id; qtyDraft = 1; render(); } },
           g.multi ? (g.count ? "Também vou oferecer" : "Vou oferecer") : "Vou oferecer este")));
     }
     li.append(actions);
     return li;
+  }
+
+  function stepper(n, onChange, disabled) {
+    return h("div", { class: "qty", role: "group", "aria-label": "Quantidade" },
+      h("button", { type: "button", "aria-label": "Menos um", disabled: disabled || n <= 1, onclick: () => onChange(n - 1) }, "−"),
+      h("span", { text: String(n) }),
+      h("button", { type: "button", "aria-label": "Mais um", disabled: disabled || n >= 99, onclick: () => onChange(n + 1) }, "+"));
   }
 
   function renderMessages() {
@@ -1337,7 +1358,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       h("div", {}, dot("boy"), h("strong", { text: nm.menino }), " " + pct(b)),
       h("div", {}, dot("girl"), h("strong", { text: nm.menina }), " " + pct(g)));
     const singles = data.gifts.filter((x) => !x.multi), taken = singles.filter((x) => x.count > 0).length;
-    const ofertas = data.gifts.filter((x) => x.multi).reduce((a, x) => a + x.count, 0);
+    const ofertas = data.gifts.filter((x) => x.multi).reduce((a, x) => a + (x.units || x.count), 0);
     $("#fStats").replaceChildren(
       h("div", {}, h("b", { text: `${taken}/${singles.length}` }), "prendas reservadas"),
       h("div", {}, h("b", { text: String(ofertas) }), ofertas === 1 ? "oferta de vários" : "ofertas de vários"));
@@ -1378,10 +1399,13 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     busy.add(id); render();
     try {
       if (!(await ensureMe(name))) return;
-      const r = await call("reserve", id, codeDraft.trim());
+      const g = data.gifts.find((x) => x.id === id);
+      const r = await call("reserve", id, codeDraft.trim(), g && g.multi ? qtyDraft : 1);
       if (r.ok) {
         codes[id] = r.code; LS.set("reservas", codes); LS.set("codigo", codeDraft.trim());
-        openClaim = null; toast("Obrigado! Ficou registado."); confetti(); afterAction();
+        qtys[id] = r.quantidade || 1; LS.set("quantidades", qtys);
+        openClaim = null; qtyDraft = 1;
+        toast(r.somado ? `Atualizado: vais oferecer ${r.quantidade}.` : "Obrigado! Ficou registado."); confetti(); afterAction();
       } else if (r.reason === "chave") lostMe();
       else if (r.reason === "taken") { openClaim = null; toast("Este presente acabou de ser reservado por outra pessoa."); }
       else if (r.reason === "eventcode") { codeDraft = ""; toast("O código do evento não está certo. Pede-o a quem te enviou a lista."); }
@@ -1389,6 +1413,21 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       else toast("Escreve o teu nome para continuar.");
     } catch (e) { toast("Não foi possível guardar. Verifica a ligação e tenta outra vez."); }
     finally { busy.delete(id); await refresh(); }
+  }
+
+  async function setQty(id, n) {
+    if (busy.has(id) || n < 1 || n > 99) return;
+    busy.add(id); qtys[id] = n; render();
+    try {
+      const r = await call("setQuantity", codes[id], n);
+      if (r.ok) { LS.set("quantidades", qtys); toast(`Vais oferecer ${n}.`); }
+      else toast("Não foi possível mudar a quantidade.");
+    } catch (e) { toast("Não foi possível guardar. Verifica a ligação e tenta outra vez."); }
+    finally {
+      busy.delete(id);
+      if (me) { try { await syncMe(); } catch (_) {} }
+      await refresh();
+    }
   }
 
   async function cancel(id) {
