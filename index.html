@@ -209,6 +209,15 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .me-row .label { min-width: 84px; }
 .me-gifts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; width: 100%; }
 .me-gifts li { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+/* as minhas reservas */
+.res-btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; background: var(--card); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow); flex: none; }
+.res-btn svg { width: 20px; height: 20px; flex: none; color: var(--accent); }
+.res-btn .badge { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-size: 12px; display: grid; place-items: center; }
+@media (max-width: 560px) { .res-btn .lbl { display: none; } .res-btn { padding: 0 10px; } }
+.res-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.res-row:last-child { border-bottom: 0; }
+.res-name { flex: 1; min-width: 120px; font-weight: 600; overflow-wrap: anywhere; }
+.own-gift { font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 .my-guess .chip { font-size: 13px; padding: 4px 12px; }
 .my-guess .chip .num { font-size: 17px; }
 /* modo festa (TV) */
@@ -320,6 +329,10 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
 <main class="wrap">
   <header class="hero">
     <div class="corner">
+      <button class="res-btn" type="button" id="resBtn" hidden aria-label="As minhas reservas" title="As minhas reservas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>
+        <span class="lbl">Minhas reservas</span><span class="badge" id="resCount" hidden></span>
+      </button>
       <button class="me-pill" type="button" id="meBtn"></button>
       <button class="btn-ghost tv-btn" type="button" id="openFesta" title="Modo festa (TV)" aria-label="Modo festa (TV)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 2l4 5 4-5"/></svg>
@@ -572,6 +585,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     oMeu: (key, codigos) => ["o_meu", { p_chave: key, p_codigos: codigos || [] }],
     reserve: (id, code, qty) => ["reserve", { p_prenda: id, p_chave: me && me.chave, p_codigo: code || "", p_quantidade: qty || 1 }],
     setQuantity: (code, n) => ["set_quantity", { p_code: code || "", p_quantidade: n }],
+    removeGift: (id) => ["remove_gift", { p_prenda: id, p_chave: me && me.chave }],
     cancelReservation: (code) => ["cancel_reservation", { p_code: code || "" }],
     addGift: (gift, desc, multi, give, code) => ["add_gift", { p_nome: gift, p_detalhes: desc, p_multi: multi, p_chave: me && me.chave, p_dar: give, p_codigo: code || "" }],
     vote: (choice) => ["vote", { p_palpite: choice, p_chave: me && me.chave }],
@@ -800,6 +814,47 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     ["#guessName", "#msgName", "#addWho"].forEach((s) => { $(s).closest(".field").hidden = !!me; });
     $("#addWho").required = !me;
     $("#guessText").textContent = me ? `${me.nome}, qual é o teu palpite? Podes mudar quando quiseres.` : "Qual é o teu palpite? Escreve o teu nome e escolhe.";
+    const nRes = Object.keys(codes).length;
+    $("#resBtn").hidden = !me;
+    $("#resCount").hidden = !nRes; $("#resCount").textContent = String(nRes);
+  }
+  const myCreated = () => new Set((me && meInfo && meInfo.criadas) || []);
+  async function openReservas() {
+    if (!me) { openLogin(); return; }
+    const body = h("div", { class: "me-list" }, h("p", { class: "who", text: "A carregar…" }));
+    showMe(
+      h("span", { class: "eyebrow", text: me.nome }),
+      h("h2", { text: "As minhas reservas" }),
+      body,
+      h("button", { class: "btn-text", type: "button", onclick: closeMe }, "Fechar"));
+    let r;
+    try { r = await syncMe(); } catch (_) { body.replaceChildren(h("p", { class: "who", text: "Não foi possível carregar. Verifica a ligação." })); return; }
+    if (!r.ok) { closeMe(); lostMe(); return; }
+    render();
+    fillReservas(body);
+  }
+  function fillReservas(body) {
+    const res = (meInfo && meInfo.reservas) || [], created = myCreated(), rows = [];
+    if (!res.length) rows.push(h("p", { class: "who", text: "Ainda não escolheste nenhuma prenda. Vê a lista e carrega em «Vou oferecer»." }));
+    res.forEach((x) => rows.push(h("div", { class: "res-row" },
+      h("span", { class: "res-name", text: x.nome }),
+      x.multi ? stepper(x.quantidade || 1, async (n) => { await setQty(x.prenda, n); fillReservas(body); }, busy.has(x.prenda))
+              : h("span", { class: "who", text: "Reservada" }),
+      h("button", { class: "btn-text", type: "button", onclick: async (e) => {
+        e.currentTarget.disabled = true; await cancel(x.prenda);
+        try { await syncMe(); } catch (_) {}
+        render(); fillReservas(body); } }, "Cancelar"))));
+    const mine = data.gifts.filter((g) => created.has(g.id));
+    if (mine.length) {
+      rows.push(h("hr"), h("span", { class: "label", text: "Prendas que acrescentaste à lista" }));
+      mine.forEach((g) => {
+        const others = g.count - (codes[g.id] ? 1 : 0);
+        rows.push(h("div", { class: "res-row" }, h("span", { class: "res-name", text: g.name }),
+          others > 0 ? h("span", { class: "who", text: "Já há quem a ofereça" })
+                     : h("button", { class: "btn-text", type: "button", onclick: async () => { if (await removeGift(g.id)) fillReservas(body); } }, "Remover da lista")));
+      });
+    }
+    body.replaceChildren(...rows);
   }
 
   // ---------- dados ----------
@@ -1055,6 +1110,12 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
           g.multi ? (g.count ? "Também vou oferecer" : "Vou oferecer") : "Vou oferecer este")));
     }
     li.append(actions);
+    if (myCreated().has(g.id)) {
+      const others = g.count - (mine ? 1 : 0);
+      li.append(h("div", { class: "own-gift" }, "Acrescentaste esta prenda.",
+        others > 0 ? h("span", { text: "Já há quem a ofereça, por isso já não a podes remover." })
+                   : h("button", { class: "btn-text", type: "button", disabled: working, onclick: () => removeGift(g.id) }, "Remover da lista")));
+    }
     return li;
   }
 
@@ -1415,6 +1476,26 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     finally { busy.delete(id); await refresh(); }
   }
 
+  async function removeGift(id) {
+    const g = data.gifts.find((x) => x.id === id);
+    if (!g || busy.has(id) || !confirm(`Remover «${g.name}» da lista?`)) return false;
+    busy.add(id); render();
+    let ok = false;
+    try {
+      const r = await call("removeGift", id);
+      if (r.ok) { ok = true; delete codes[id]; delete qtys[id]; LS.set("reservas", codes); LS.set("quantidades", qtys); toast("Prenda removida da lista."); }
+      else if (r.reason === "others") toast("Entretanto alguém escolheu esta prenda, por isso já não pode ser removida.");
+      else if (r.reason === "chave") lostMe();
+      else toast("Só quem acrescentou a prenda a pode remover.");
+    } catch (e) { toast("Não foi possível remover. Verifica a ligação e tenta outra vez."); }
+    finally {
+      busy.delete(id);
+      if (me) { try { await syncMe(); } catch (_) {} }
+      await refresh();
+    }
+    return ok;
+  }
+
   async function setQty(id, n) {
     if (busy.has(id) || n < 1 || n > 99) return;
     busy.add(id); qtys[id] = n; render();
@@ -1511,6 +1592,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       const r = await call("addGift", gift, desc, multi, give, code);
       if (r.ok) {
         if (r.code) { codes[r.id] = r.code; LS.set("reservas", codes); }
+        try { await syncMe(); } catch (_) {}
         afterAction();
         if (code) { codeDraft = code; LS.set("codigo", code); }
         $("#addName").value = ""; $("#addDesc").value = "";
@@ -1527,6 +1609,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
 
   $("#openFesta").addEventListener("click", openFesta);
   $("#meBtn").addEventListener("click", () => (me ? openMine() : openLogin()));
+  $("#resBtn").addEventListener("click", openReservas);
   $("#meModal").addEventListener("click", (e) => { if (e.target.id === "meModal") closeMe(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#meModal").hidden) closeMe(); });
   $("#playBtn").addEventListener("click", openGame);
