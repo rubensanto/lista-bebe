@@ -314,22 +314,13 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .game-card h3 { font-size: 21px; }
 .game-card > p { margin: 0; color: var(--muted); font-size: 14px; }
 .game-card .top5 { font-size: 14px; gap: 4px; }
-/* palco dos jogos feitos com botões (fralda, memória, embalar) */
+/* palco dos jogos feitos com botões (memória, embalar) */
 .game-stage { position: absolute; inset: calc(64px + env(safe-area-inset-top, 0px)) 12px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.5vh; text-align: center; user-select: none; -webkit-user-select: none; }
-.fr-steps { display: flex; gap: 6px; }
-.fr-steps span { width: 34px; height: 8px; border-radius: 4px; background: var(--line); }
-.fr-steps span.done { background: var(--accent); }
-.fr-baby { width: min(44vw, 200px); aspect-ratio: 1; border-radius: 50%; background: var(--card); display: grid; place-items: center; font-size: min(24vw, 110px); border: 4px dashed var(--muted); }
-.fr-baby.ok { animation: pop .3s ease; border-color: var(--sage); }
-@keyframes pop { 50% { transform: scale(1.08); } }
-.fr-next { font-weight: 700; min-height: 1.5em; }
-.fr-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: min(100%, 540px); }
-.fr-card { aspect-ratio: 1 / 1.2; border-radius: 16px; background: var(--card); border: 2px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: min(8vw, 40px); touch-action: none; cursor: grab; padding: 4px; box-shadow: var(--shadow); }
-.fr-card small { font-size: 11px; font-weight: 600; color: var(--muted); line-height: 1.1; }
-.fr-card.used { opacity: .2; pointer-events: none; }
-.fr-card.drag { position: relative; z-index: 5; cursor: grabbing; box-shadow: 0 12px 30px rgba(0,0,0,.25); }
-.fr-card.bad { animation: shake .3s; border-color: var(--accent); }
-@keyframes shake { 25% { translate: -6px 0; } 75% { translate: 6px 0; } }
+.team-tag { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px; border-radius: 16px; font-size: 15px; }
+.team-tag strong { font-family: var(--f-display); font-weight: 400; font-size: 22px; }
+.team-tag small { color: var(--muted); font-size: 12px; }
+.team-tag.b { background: var(--boy-soft); color: var(--boy); }
+.team-tag.g { background: var(--girl-soft); color: var(--girl); }
 .mem { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: min(92vw, 62vh, 440px); }
 .mem button { aspect-ratio: 1; border-radius: 14px; padding: 0; font-size: min(9vw, 6vh, 42px); background: linear-gradient(135deg, var(--boy), var(--girl)); border: 0; }
 .mem button.up { background: var(--card); box-shadow: inset 0 0 0 3px var(--accent); }
@@ -1239,8 +1230,6 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   const GAMES = {
     chupetas: { nome: "Apanha as chupetas", ico: "🍼", desc: "30 segundos para apanhar tudo o que cai do céu.",
       how: "Mexe o berço com o dedo (ou com as setas) e apanha o que cai. Tens 30 segundos!", rules: "Chupeta +1 · Estrela +3 · Fralda suja −2" },
-    fralda: { nome: "Muda a fralda", ico: "🧷", desc: "As 5 peças pela ordem certa, 3 vezes seguidas, contra o relógio.",
-      how: "Arrasta cada peça para o bebé (ou toca nela) pela ordem certa. São 3 rondas.", rules: "Fralda suja fora → toalhita → creme → fralda nova → molas. Peça errada: +2 s." },
     memoria: { nome: "Memória de bebé", ico: "🧸", desc: "Encontra os 8 pares com o menor número de jogadas.",
       how: "Vira duas cartas de cada vez e encontra os pares.", rules: "Menos jogadas e menos tempo dão mais pontos." },
     embala: { nome: "Embala o bebé", ico: "🎵", desc: "Toca ao ritmo da canção de embalar até o bebé adormecer.",
@@ -1312,9 +1301,9 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
 
   // ---------- jogo: apanha as chupetas ----------
   const G = { running: false, team: null, name: null, token: null, raf: 0, cleanup: null, jogo: "chupetas" };
+  let pendingGame = null;   // jogo a abrir depois de a pessoa dar o palpite
   function openGame(k) {
     G.jogo = GAMES[k] ? k : "chupetas";
-    if (myVote === "menino" || myVote === "menina") G.team = myVote;   // por definição, a equipa do palpite
     document.body.classList.add("game-open");
     $("#game").hidden = false;
     $("#gScore").textContent = ""; $("#gTime").textContent = "";
@@ -1330,28 +1319,33 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     afterAction();
   }
   function gameSetup() {
-    const nm = NM();
-    if (!G.team) G.team = (myVote === "menino" || myVote === "menina") ? myVote : LS.get("equipa", null);
+    const nm = NM(), g = GAMES[G.jogo];
+    // joga-se sempre pela equipa do palpite; sem palpite, primeiro dá-se o palpite
+    G.team = myVote === "menino" || myVote === "menina" ? myVote : null;
     if (G.name == null) G.name = claimDraft || "";
+    $("#gPanel").hidden = false;
+    if (!G.team) {
+      $("#gPanel").replaceChildren(
+        h("h2", { text: g.nome }),
+        h("p", { class: "who", text: "Aqui joga-se pela equipa do teu palpite. Dá primeiro o teu palpite e depois começas a jogar!" }),
+        h("button", { class: "btn-primary", type: "button", onclick: () => { pendingGame = G.jogo; closeGame(); openModal(); } }, "Dar o meu palpite"));
+      return;
+    }
     const name = h("input", { id: "gName", maxlength: "40", placeholder: "Ex.: Tia Ana", autocomplete: "name", oninput: (e) => (G.name = e.target.value) });
     name.value = G.name;
-    const pick = (k, cls) => h("button", { type: "button", class: cls, "aria-pressed": String(G.team === k), onclick: () => { G.team = k; gameSetup(); } }, "Equipa " + nm[k]);
-    $("#gPanel").hidden = false;
     $("#gPanel").replaceChildren(
-      h("h2", { text: GAMES[G.jogo].nome }),
-      h("p", { class: "who", text: GAMES[G.jogo].how }),
+      h("h2", { text: g.nome }),
+      h("p", { class: "who", text: g.how }),
       me ? h("p", { class: "who" }, "A jogar como ", h("strong", { text: me.nome }))
          : h("div", { class: "field", style: "text-align: left" }, h("label", { for: "gName", text: "O teu nome" }), name),
-      h("div", { class: "field", style: "text-align: left" }, h("label", { text: "Jogas pela" }), h("div", { class: "team-pick" }, pick("menino", "b"), pick("menina", "g"))),
-      h("p", { class: "who", text: GAMES[G.jogo].rules }),
-      G.team && G.team === myVote ? h("p", { class: "who", text: "Por definição jogas pela equipa do teu palpite." }) : null,
+      h("div", { class: "team-tag " + (G.team === "menino" ? "b" : "g") }, "Jogas pela", h("strong", { text: "Equipa " + nm[G.team] }), h("small", { text: "a equipa do teu palpite" })),
+      h("p", { class: "who", text: g.rules }),
       h("button", { class: "btn-primary", type: "button", onclick: startGame }, "Começar"));
   }
   async function startGame() {
     const name = me ? me.nome : String(G.name || "").trim();
     if (!name) { toast("Escreve o teu nome para jogar."); $("#gName")?.focus(); return; }
-    if (!G.team) { toast("Escolhe a tua equipa."); return; }
-    LS.set("equipa", G.team);
+    if (!G.team) { gameSetup(); return; }
     let r;
     try {
       if (!(await ensureMe(name))) return;
@@ -1359,16 +1353,18 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     } catch (_) { toast("Não foi possível começar. Verifica a ligação."); return; }
     if (!r.ok) {
       if (r.reason === "chave") { lostMe(); gameSetup(); return; }
+      if (r.reason === "palpite") { myVote = null; LS.set("palpite", null); gameSetup(); return; }
       toast(r.reason === "wait" ? "Espera uns segundos e tenta outra vez." : "Não foi possível começar."); return;
     }
     G.token = r.token;
+    if (r.equipa) G.team = r.equipa;
     for (const n of ["3", "2", "1"]) {
       $("#gPanel").replaceChildren(h("div", { class: "big", text: n }));
       await new Promise((res) => setTimeout(res, 800));
       if ($("#game").hidden) return;
     }
     $("#gPanel").hidden = true;
-    ({ chupetas: runGame, fralda: runFralda, memoria: runMemoria, embala: runEmbala, fisga: runFisga })[G.jogo]();
+    ({ chupetas: runGame, memoria: runMemoria, embala: runEmbala, fisga: runFisga })[G.jogo]();
   }
   // ---------- fim de qualquer jogo: guarda e mostra o resultado ----------
   async function endGame(score) {
@@ -1399,55 +1395,6 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   function clearCanvas() { const cv = $("#gameCanvas"); cv.getContext("2d").clearRect(0, 0, cv.width, cv.height); }
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const clamp100 = (n) => Math.max(0, Math.min(100, Math.round(n)));
-
-  // ---------- jogo: muda a fralda ----------
-  function runFralda() {
-    clearCanvas();
-    const STEPS = [["suja", "💩", "Fralda suja fora"], ["toalhita", "🧻", "Toalhita"], ["creme", "🧴", "Creme"], ["nova", "🩲", "Fralda nova"], ["molas", "🧷", "Molas"]];
-    const ROUNDS = 3;
-    let round = 0, step = 0, penalty = 0, done = false;
-    const t0 = performance.now(), secs = () => (performance.now() - t0) / 1000 + penalty;
-    const bar = h("div", { class: "fr-steps" }, STEPS.map(() => h("span")));
-    const baby = h("div", { class: "fr-baby", text: "👶" }), hint = h("div", { class: "fr-next" }), grid = h("div", { class: "fr-cards" });
-    stage(bar, baby, hint, grid);
-    const timer = setInterval(() => { $("#gTime").textContent = secs().toFixed(1) + "s"; }, 100);
-    G.running = true; G.cleanup = () => { done = true; clearInterval(timer); G.cleanup = null; };
-    const deal = () => {
-      $("#gScore").textContent = `Ronda ${round + 1}/${ROUNDS}`;
-      [...bar.children].forEach((s, i) => s.classList.toggle("done", i < step));
-      hint.textContent = round === 0 ? `Agora: ${STEPS[step][2]}` : `Passo ${step + 1} de ${STEPS.length}`;
-      if (step === 0) grid.replaceChildren(...shuffle(STEPS.slice()).map(([k, e, t]) => card(k, e, t)));
-    };
-    const attempt = (k, el) => {
-      if (done) return;
-      if (k !== STEPS[step][0]) { penalty += 2; el.classList.remove("bad"); void el.offsetWidth; el.classList.add("bad"); hint.textContent = "Peça errada: +2 s"; return; }
-      el.classList.add("used"); baby.classList.remove("ok"); void baby.offsetWidth; baby.classList.add("ok");
-      step++;
-      if (step === STEPS.length) {
-        step = 0; round++;
-        if (round === ROUNDS) { done = true; clearInterval(timer); setTimeout(() => endGame(clamp100(120 - 4 * secs())), 300); return; }
-      }
-      deal();
-    };
-    const card = (k, e, t) => {
-      const el = h("div", { class: "fr-card", role: "button", tabindex: "0", "aria-label": t }, e, h("small", { text: t }));
-      let sx = 0, sy = 0, dragging = false;
-      const reset = () => { dragging = false; el.classList.remove("drag"); el.style.transform = ""; };
-      el.addEventListener("pointerdown", (ev) => { sx = ev.clientX; sy = ev.clientY; dragging = true; el.setPointerCapture(ev.pointerId); el.classList.add("drag"); });
-      el.addEventListener("pointermove", (ev) => { if (dragging) el.style.transform = `translate(${ev.clientX - sx}px, ${ev.clientY - sy}px)`; });
-      el.addEventListener("pointerup", (ev) => {
-        if (!dragging) return;
-        reset();
-        const r = baby.getBoundingClientRect();
-        const over = ev.clientX > r.left && ev.clientX < r.right && ev.clientY > r.top && ev.clientY < r.bottom;
-        if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 10 || over) attempt(k, el);
-      });
-      el.addEventListener("pointercancel", reset);
-      el.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); attempt(k, el); } });
-      return el;
-    };
-    deal();
-  }
 
   // ---------- jogo: memória de bebé ----------
   function runMemoria() {
@@ -1909,6 +1856,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
           toast("Palpite registado!");
           confetti([choice === "menino" ? "--boy" : "--girl", "--accent"]);
           afterAction();
+          if (pendingGame) { const k = pendingGame; pendingGame = null; setTimeout(() => openGame(k), 700); }
         } else if (r.reason === "chave") lostMe();
         else toast("Não foi possível guardar o palpite.");
       }
