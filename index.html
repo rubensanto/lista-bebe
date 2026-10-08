@@ -181,8 +181,31 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .share-menu a, .share-menu button { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: none; border: none; color: var(--ink); text-decoration: none; font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
 .share-menu a:hover, .share-menu button:hover { background: var(--line); }
 .share-menu svg { width: 20px; height: 20px; flex: none; }
-.tv-btn { position: absolute; top: 0; right: 0; width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 50%; background: var(--card); box-shadow: var(--shadow); z-index: 2; }
-.hero-top { padding-right: 52px; }
+.corner { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: -6px; }
+.tv-btn { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 50%; background: var(--card); box-shadow: var(--shadow); flex: none; }
+/* convidado: botão com o nome e pop-ups de acesso */
+.me-pill { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px 0 6px; background: var(--card); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow); min-width: 0; max-width: min(260px, 62vw); }
+.me-pill.anon { padding-left: 16px; color: var(--muted); }
+.me-pill .av { position: relative; width: 32px; height: 32px; border-radius: 50%; flex: none; display: grid; place-items: center; font-family: var(--f-display); font-weight: 400; font-size: 17px; color: #fff; background: linear-gradient(135deg, var(--boy) 0 50%, var(--girl) 50% 100%); }
+.me-pill .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.me-pill.unsaved .av::after { content: ""; position: absolute; top: -2px; right: -2px; width: 11px; height: 11px; border-radius: 50%; background: var(--accent); border: 2px solid var(--card); }
+.me-modal { z-index: 80; }
+.me-modal .modal-card { max-height: calc(100vh - 32px); overflow: auto; }
+.me-modal h2 { overflow-wrap: anywhere; }
+.me-modal hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; width: 100%; }
+.me-modal .field { text-align: left; }
+.me-actions { display: flex; flex-direction: column; gap: 8px; }
+.me-actions a { text-decoration: none; text-align: center; border-radius: 999px; padding: 9px 16px; font-weight: 600; }
+.me-key { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px; border-radius: 16px; background: var(--accent-soft); }
+.me-key b { font-family: var(--f-mono); font-size: 28px; letter-spacing: .12em; color: var(--ink); }
+.me-qr { align-self: center; background: #fff; padding: 10px; border-radius: 14px; }
+.me-qr img, .me-qr canvas { display: block; }
+.me-list { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.me-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.me-row.col { flex-direction: column; gap: 4px; }
+.me-row .label { min-width: 84px; }
+.me-gifts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.me-gifts li { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
 .my-guess .chip { font-size: 13px; padding: 4px 12px; }
 .my-guess .chip .num { font-size: 17px; }
 /* modo festa (TV) */
@@ -293,6 +316,12 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
 <div class="bg-names" aria-hidden="true"><span class="b" id="bgBoy"></span><span class="g" id="bgGirl"></span></div>
 <main class="wrap">
   <header class="hero">
+    <div class="corner">
+      <button class="me-pill" type="button" id="meBtn"></button>
+      <button class="btn-ghost tv-btn" type="button" id="openFesta" title="Modo festa (TV)" aria-label="Modo festa (TV)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 2l4 5 4-5"/></svg>
+      </button>
+    </div>
     <div class="hero-top">
       <svg class="baby" id="baby" viewBox="0 0 120 120" role="img" aria-label="Bebé a acenar">
         <g class="hand"><circle cx="104" cy="94" r="9" fill="#f5cfb8" stroke="#e3b49a" stroke-width="1.5"/></g>
@@ -334,9 +363,6 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
         </button>
       </div>
     </div>
-    <button class="btn-ghost tv-btn" type="button" id="openFesta" title="Modo festa (TV)" aria-label="Modo festa (TV)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 2l4 5 4-5"/></svg>
-    </button>
   </header>
 
   <div class="reveal" id="reveal" hidden></div>
@@ -445,7 +471,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   <div class="modal-card">
     <span class="eyebrow">Antes de veres a lista</span>
     <h2 id="guessTitle">Menino ou menina?</h2>
-    <p>Qual é o teu palpite? Escreve o teu nome e escolhe. Se mudares de ideias, usa o mesmo nome.</p>
+    <p id="guessText">Qual é o teu palpite? Escreve o teu nome e escolhe.</p>
     <div class="field" style="text-align: left"><label for="guessName">O teu nome</label><input id="guessName" maxlength="40" placeholder="Ex.: Tia Ana" autocomplete="name"></div>
     <div class="choices">
       <button class="choice menino" type="button" data-vote="menino">
@@ -460,6 +486,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     <button class="btn-text" type="button" id="skipGuess">Prefiro não arriscar</button>
   </div>
 </div>
+<div class="modal me-modal" id="meModal" hidden role="dialog" aria-modal="true" aria-label="O meu acesso"><div class="modal-card" id="meCard"></div></div>
 <section class="festa" id="festa" hidden aria-label="Modo festa">
   <button class="festa-close" type="button" id="festaClose" aria-label="Sair do modo festa">×</button>
   <div class="festa-head">
@@ -522,10 +549,14 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     token = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2, 12));
     LS.set("token", token);
   }
+  let me = LS.get("eu", null);                  // { nome, chave } deste convidado
+  let meInfo = null, pendingSave = false;       // meInfo: as minhas escolhas, vindas da base de dados
   const busy = new Set();
   const NM = () => ({ menino: data.config.nomeMenino || "Menino", menina: data.config.nomeMenina || "Menina" });
   const hasNames = () => !!(data.config.nomeMenino && data.config.nomeMenina);
   const pageUrl = () => location.href.split("#")[0].split("?")[0];
+  const fmtKey = (k) => k.slice(0, 4) + "-" + k.slice(4);
+  const accessUrl = () => pageUrl() + "#c=" + me.chave;
 
   // ---------- ligação ao Supabase ----------
   // A chave pública (anon/publishable) foi feita para estar visível: só dá acesso às funções do site.
@@ -533,14 +564,16 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   const SUPABASE_KEY = "sb_publishable_H5RbiJBQP1RwY4TcH029tw_d0ytm4p4";
   const RPC = {
     getData: () => ["get_data", {}],
-    reserve: (id, name, code) => ["reserve", { p_prenda: id, p_nome: name, p_codigo: code || "" }],
+    entrar: (name, force) => ["entrar", { p_nome: name, p_forcar: !!force }],
+    oMeu: (key, codigos) => ["o_meu", { p_chave: key, p_codigos: codigos || [] }],
+    reserve: (id, code) => ["reserve", { p_prenda: id, p_chave: me && me.chave, p_codigo: code || "" }],
     cancelReservation: (code) => ["cancel_reservation", { p_code: code || "" }],
-    addGift: (gift, desc, multi, who, give, code) => ["add_gift", { p_nome: gift, p_detalhes: desc, p_multi: multi, p_quem: who, p_dar: give, p_codigo: code || "" }],
-    vote: (choice, name) => ["vote", { p_palpite: choice, p_nome: name }],
-    postMessage: (name, text, code) => ["post_message", { p_nome: name, p_texto: text, p_codigo: code || "" }],
+    addGift: (gift, desc, multi, give, code) => ["add_gift", { p_nome: gift, p_detalhes: desc, p_multi: multi, p_chave: me && me.chave, p_dar: give, p_codigo: code || "" }],
+    vote: (choice) => ["vote", { p_palpite: choice, p_chave: me && me.chave }],
+    postMessage: (text, code) => ["post_message", { p_chave: me && me.chave, p_texto: text, p_codigo: code || "" }],
     react: (k) => ["react", { p_emoji: k }],
     getReactions: (since) => ["get_reactions", { p_since: since }],
-    startGame: (name, team) => ["start_game", { p_nome: name, p_equipa: team }],
+    startGame: (team) => ["start_game", { p_chave: me && me.chave, p_equipa: team }],
     submitScore: (token, pts) => ["submit_score", { p_token: token, p_pontos: pts }],
   };
   async function call(fn, ...args) {
@@ -594,6 +627,173 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       });
       if (t - t0 < 2600) requestAnimationFrame(frame); else { ctx.clearRect(0, 0, cv.width, cv.height); cv.hidden = true; }
     })(t0);
+  }
+
+  // ---------- convidado: acesso pessoal (link, código ou QR) ----------
+  function setMe(m) { me = m; LS.set("eu", m); if (m) { claimDraft = m.nome; LS.set("nome", m.nome); } renderMe(); }
+  function lostMe() { setMe(null); meInfo = null; toast("O teu acesso já não é válido. Entra outra vez com o teu código."); }
+  // vai buscar as minhas escolhas à base de dados; as reservas antigas deste navegador passam a ser minhas
+  async function syncMe(key) {
+    const r = await call("oMeu", key || me.chave, Object.values(codes));
+    if (!r.ok) return r;
+    if (key) setMe({ nome: r.nome, chave: key.replace(/[^A-Za-z0-9]/g, "").toUpperCase() });
+    meInfo = r;
+    codes = {}; (r.reservas || []).forEach((x) => (codes[x.prenda] = x.codigo)); LS.set("reservas", codes);
+    if (r.palpite) { myVote = r.palpite; LS.set("palpite", r.palpite); }
+    else if (myVote === "menino" || myVote === "menina") { myVote = null; LS.set("palpite", null); }
+    if (r.equipa) LS.set("equipa", r.equipa);
+    return r;
+  }
+  // na primeira participação cria o convidado; devolve false se a pessoa desistiu
+  async function ensureMe(name) {
+    if (me) return true;
+    name = String(name || "").trim();
+    if (!name) return false;
+    let r = await call("entrar", name, false);
+    if (!r.ok && r.reason === "exists") {
+      const ans = await askDuplicate(name);
+      if (ans === "me") { openLogin(); return false; }
+      if (ans !== "other") return false;
+      r = await call("entrar", name, true);
+    }
+    if (!r.ok) { toast(r.reason === "full" ? "A lista de convidados está cheia. Fala com os pais." : "Escreve o teu nome para continuar."); return false; }
+    LS.set("guardado", false);
+    setMe({ nome: r.nome, chave: r.chave });
+    pendingSave = true;
+    try { await syncMe(); } catch (_) {}
+    return true;
+  }
+  function afterAction() { if (pendingSave && me) { pendingSave = false; setTimeout(() => openSave(true), 1300); } }
+
+  let meResolve = null;
+  function showMe(...nodes) {
+    $("#meCard").replaceChildren(...nodes.flat().filter(Boolean));
+    $("#meModal").hidden = false;
+    const f = $("#meCard").querySelector("input, .btn-primary"); if (f) f.focus();
+  }
+  function closeMe() {
+    $("#meModal").hidden = true;
+    if (meResolve) { const r = meResolve; meResolve = null; r(null); }
+  }
+  function askDuplicate(name) {
+    return new Promise((res) => {
+      meResolve = res;
+      const pick = (v) => () => { meResolve = null; $("#meModal").hidden = true; res(v); };
+      showMe(
+        h("span", { class: "eyebrow", text: "Nome repetido" }),
+        h("h2", { text: `Já existe «${name}» na lista` }),
+        h("p", { text: "Se és tu, noutro aparelho, entra com o teu código. Se és outra pessoa, o melhor é voltar e acrescentar o apelido (ex.: «Ana Silva»)." }),
+        h("div", { class: "me-actions" },
+          h("button", { class: "btn-primary", type: "button", onclick: pick("me") }, "Sou eu: tenho o código"),
+          h("button", { class: "btn-ghost", type: "button", onclick: pick(null) }, "Voltar e mudar o nome"),
+          h("button", { class: "btn-text", type: "button", onclick: pick("other") }, "Sou outra pessoa e quero este nome")));
+    });
+  }
+  function accessBlock() {
+    const qr = h("div", { class: "me-qr", hidden: true });
+    const waText = `O meu acesso à lista de presentes do bebé (é pessoal, não partilhes):\n${accessUrl()}\nCódigo: ${fmtKey(me.chave)}`;
+    const saved = () => { LS.set("guardado", true); renderMe(); };
+    return [
+      h("div", { class: "me-key" }, h("span", { class: "label", text: "O teu código" }), h("b", { text: fmtKey(me.chave) })),
+      h("div", { class: "me-actions" },
+        h("a", { class: "btn-primary", href: "https://wa.me/?text=" + encodeURIComponent(waText), target: "_blank", rel: "noopener noreferrer", onclick: saved }, "Guardar no WhatsApp"),
+        h("button", { class: "btn-ghost", type: "button", onclick: async () => {
+          try { await navigator.clipboard.writeText(accessUrl()); toast("O teu link pessoal foi copiado!"); } catch (_) { toast("Copia este link: " + accessUrl()); }
+          saved(); } }, "Copiar o meu link"),
+        h("button", { class: "btn-ghost", type: "button", onclick: (e) => {
+          qr.hidden = !qr.hidden; e.currentTarget.textContent = qr.hidden ? "Mostrar QR" : "Esconder QR";
+          if (!qr.childElementCount && window.QRCode) {
+            try { new QRCode(qr, { text: accessUrl(), width: 180, height: 180, colorDark: "#1c1830", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M }); } catch (_) {}
+          }
+          saved(); } }, "Mostrar QR")),
+      qr,
+    ];
+  }
+  function openSave(first) {
+    if (!me) return;
+    showMe(
+      h("span", { class: "eyebrow", text: first ? `Olá, ${me.nome}!` : "O meu acesso" }),
+      h("h2", { text: "Guarda o teu acesso" }),
+      h("p", { text: "Assim voltas às tuas escolhas noutro telemóvel ou computador, para mudar o palpite ou cancelar uma prenda. É pessoal: não o partilhes." }),
+      accessBlock(),
+      first ? h("p", { class: "who", text: "Podes fazê-lo mais tarde: carrega no teu nome, no canto superior direito." }) : null,
+      h("button", { class: "btn-text", type: "button", onclick: closeMe }, first ? "Agora não" : "Fechar"));
+  }
+  function openLogin() {
+    const inp = h("input", { id: "meKeyInp", maxlength: "12", placeholder: "Ex.: K7QM-3XRP", autocomplete: "off", autocapitalize: "characters", spellcheck: "false",
+      onkeydown: (e) => { if (e.key === "Enter") go(); } });
+    const btn = h("button", { class: "btn-primary", type: "button", onclick: () => go() }, "Entrar");
+    async function go() {
+      const k = inp.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+      if (k.length !== 8) { toast("O código tem 8 letras e números (ex.: K7QM-3XRP)."); inp.focus(); return; }
+      btn.disabled = true; btn.textContent = "A entrar…";
+      try {
+        const r = await syncMe(k);
+        if (r.ok) { LS.set("guardado", true); renderMe(); closeMe(); toast(`Olá, ${r.nome}! Aqui estão as tuas escolhas.`); await refresh(); return; }
+        toast("Esse código não existe. Confirma as letras e tenta outra vez.");
+      } catch (_) { toast("Não foi possível entrar. Verifica a ligação."); }
+      btn.disabled = false; btn.textContent = "Entrar";
+    }
+    showMe(
+      h("span", { class: "eyebrow", text: "Já participaste?" }),
+      h("h2", { text: "Entra com o teu código" }),
+      h("p", { text: "Escreve o código que guardaste. Também podes abrir o teu link pessoal ou ler o teu QR com a câmara." }),
+      h("div", { class: "field" }, h("label", { for: "meKeyInp", text: "O teu código" }), inp),
+      h("div", { class: "me-actions" }, btn),
+      h("p", { class: "who", text: "Perdeste o código? Pede aos pais: eles conseguem dar-te um novo." }),
+      h("button", { class: "btn-text", type: "button", onclick: closeMe }, "Fechar"));
+  }
+  async function openMine() {
+    if (!me) { openLogin(); return; }
+    const body = h("div", { class: "me-list" }, h("p", { class: "who", text: "A carregar…" }));
+    showMe(
+      h("span", { class: "eyebrow", text: "As minhas escolhas" }),
+      h("h2", { text: me.nome }),
+      body,
+      h("hr"),
+      h("span", { class: "label", text: "O meu acesso" }),
+      h("p", { class: "who", text: "Para entrares noutro aparelho. É pessoal: não o partilhes." }),
+      accessBlock(),
+      h("div", { class: "row", style: "justify-content: space-between" },
+        h("button", { class: "btn-text", type: "button", onclick: logout }, "Sair deste aparelho"),
+        h("button", { class: "btn-text", type: "button", onclick: closeMe }, "Fechar")));
+    let r;
+    try { r = await syncMe(); } catch (_) { body.replaceChildren(h("p", { class: "who", text: "Não foi possível carregar. Verifica a ligação." })); return; }
+    if (!r.ok) { closeMe(); lostMe(); return; }
+    render();
+    const nm = NM(), rows = [];
+    rows.push(h("div", { class: "me-row" }, h("span", { class: "label", text: "Palpite" }),
+      r.palpite ? h("strong", { text: nm[r.palpite] }) : h("span", { class: "who", text: "Ainda não deste" }),
+      data.config.revelacao ? null : h("button", { class: "btn-text", type: "button", onclick: () => { closeMe(); openModal(); } }, r.palpite ? "mudar" : "dar palpite")));
+    rows.push(h("div", { class: "me-row col" }, h("span", { class: "label", text: "Prendas" }),
+      r.reservas.length
+        ? h("ul", { class: "me-gifts" }, r.reservas.map((x) => h("li", {}, h("span", { text: x.nome }),
+            h("button", { class: "btn-text", type: "button", onclick: async (e) => { e.currentTarget.disabled = true; await cancel(x.prenda); openMine(); } }, "cancelar"))))
+        : h("span", { class: "who", text: "Ainda não escolheste nenhuma." })));
+    rows.push(h("div", { class: "me-row" }, h("span", { class: "label", text: "Jogo" }),
+      r.recorde != null ? h("span", {}, "Recorde: ", h("strong", { text: `${r.recorde} pontos` })) : h("span", { class: "who", text: "Ainda não jogaste." })));
+    if (r.mensagens) rows.push(h("div", { class: "me-row" }, h("span", { class: "label", text: "Mensagens" }), h("span", { text: `${r.mensagens} deixada${r.mensagens === 1 ? "" : "s"}` })));
+    body.replaceChildren(...rows);
+  }
+  function logout() {
+    if (!LS.get("guardado", false) && !confirm("Ainda não guardaste o teu código. Sem ele não consegues voltar às tuas escolhas. Sair mesmo assim?")) return;
+    setMe(null); meInfo = null; codes = {}; LS.set("reservas", codes); myVote = null; LS.set("palpite", null); LS.set("guardado", false);
+    closeMe(); toast("Saíste deste aparelho."); render();
+  }
+  function renderMe() {
+    const b = $("#meBtn");
+    if (me) {
+      b.className = "me-pill" + (LS.get("guardado", false) ? "" : " unsaved");
+      b.replaceChildren(h("span", { class: "av", text: me.nome.charAt(0).toUpperCase() }), h("span", { class: "nm", text: me.nome }));
+      b.title = "As minhas escolhas"; b.setAttribute("aria-label", `As minhas escolhas (${me.nome})`);
+    } else {
+      b.className = "me-pill anon";
+      b.replaceChildren(h("span", { class: "nm", text: "Já participei" }));
+      b.title = "Entrar com o meu código"; b.setAttribute("aria-label", "Já participei: entrar com o meu código");
+    }
+    ["#guessName", "#msgName", "#addWho"].forEach((s) => { $(s).closest(".field").hidden = !!me; });
+    $("#addWho").required = !me;
+    $("#guessText").textContent = me ? `${me.nome}, qual é o teu palpite? Podes mudar quando quiseres.` : "Qual é o teu palpite? Escreve o teu nome e escolhe.";
   }
 
   // ---------- dados ----------
@@ -732,9 +932,10 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
 
     const nomes = data.palpites.nomes || { menino: [], menina: [] };
     // o palpite desta pessoa vem sempre da base de dados (pelo nome), não da memória do navegador
-    const me = String(LS.get("palpiteNome", "") || claimDraft || "").trim().toLowerCase();
-    if (loaded && me) {
-      const found = ["menino", "menina"].find((k) => nomes[k].some((n) => n.trim().toLowerCase() === me));
+    // com acesso pessoal, o palpite vem de o_meu (syncMe); sem ele, procura-se pelo nome usado antes
+    const meName = me ? "" : String(LS.get("palpiteNome", "") || "").trim().toLowerCase();
+    if (loaded && meName) {
+      const found = ["menino", "menina"].find((k) => nomes[k].some((n) => n.trim().toLowerCase() === meName));
       if (found) { if (found !== myVote) { myVote = found; LS.set("palpite", found); } }
       else if (myVote === "menino" || myVote === "menina") { myVote = null; LS.set("palpite", null); LS.set("palpiteNome", ""); }
     }
@@ -822,7 +1023,8 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
         onkeydown: (e) => { if (e.key === "Enter") reserve(g.id); if (e.key === "Escape") { openClaim = null; render(); } } });
       inp.value = claimDraft;
       if (!document.getElementById("claimName")) inp.dataset.fresh = "1";
-      actions.append(h("div", { class: "field" }, h("label", { for: "claimName", text: "O teu nome" }), inp));
+      if (me) actions.append(h("span", { class: "who" }, "Em nome de ", h("strong", { text: me.nome })));
+      else actions.append(h("div", { class: "field" }, h("label", { for: "claimName", text: "O teu nome" }), inp));
       if (data.config.precisaCodigo) {
         const code = h("input", { id: "claimCode", maxlength: "60", placeholder: "Recebeste-o com o convite", autocomplete: "off",
           oninput: (e) => (codeDraft = e.target.value),
@@ -898,9 +1100,8 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       : [h("li", { class: "who", text: "Ainda ninguém jogou. Sê o primeiro!" })];
     $("#top5").replaceChildren(...items);
     $("#fTop5").replaceChildren(...items.map((n) => n.cloneNode(true)));
-    const me = String(claimDraft || "").trim().toLowerCase();
-    const mine = me && top.find((t) => t.nome.trim().toLowerCase() === me);
-    $("#myBest").textContent = mine ? `O teu melhor: ${mine.pontos} pontos` : "";
+    const best = me && meInfo && meInfo.recorde != null ? meInfo.recorde : null;
+    $("#myBest").textContent = best != null ? `O teu melhor: ${best} pontos` : "";
   }
 
   // ---------- reações ao vivo ----------
@@ -952,6 +1153,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     if (G.cleanup) G.cleanup();
     document.body.classList.remove("game-open");
     $("#game").hidden = true;
+    afterAction();
   }
   function gameSetup() {
     const nm = NM();
@@ -964,19 +1166,26 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     $("#gPanel").replaceChildren(
       h("h2", { text: "Apanha as chupetas" }),
       h("p", { class: "who", text: "Mexe o berço com o dedo (ou com as setas) e apanha o que cai. Tens 30 segundos!" }),
-      h("div", { class: "field", style: "text-align: left" }, h("label", { for: "gName", text: "O teu nome" }), name),
+      me ? h("p", { class: "who" }, "A jogar como ", h("strong", { text: me.nome }))
+         : h("div", { class: "field", style: "text-align: left" }, h("label", { for: "gName", text: "O teu nome" }), name),
       h("div", { class: "field", style: "text-align: left" }, h("label", { text: "Jogas pela" }), h("div", { class: "team-pick" }, pick("menino", "b"), pick("menina", "g"))),
       h("p", { class: "who", text: "Chupeta +1 · Estrela +3 · Fralda suja −2" }),
       h("button", { class: "btn-primary", type: "button", onclick: startGame }, "Começar"));
   }
   async function startGame() {
-    const name = String(G.name || "").trim();
+    const name = me ? me.nome : String(G.name || "").trim();
     if (!name) { toast("Escreve o teu nome para jogar."); $("#gName")?.focus(); return; }
     if (!G.team) { toast("Escolhe a tua equipa."); return; }
-    claimDraft = name; LS.set("nome", name); LS.set("equipa", G.team);
+    LS.set("equipa", G.team);
     let r;
-    try { r = await call("startGame", name, G.team); } catch (_) { toast("Não foi possível começar. Verifica a ligação."); return; }
-    if (!r.ok) { toast(r.reason === "wait" ? "Espera uns segundos e tenta outra vez." : "Não foi possível começar."); return; }
+    try {
+      if (!(await ensureMe(name))) return;
+      r = await call("startGame", G.team);
+    } catch (_) { toast("Não foi possível começar. Verifica a ligação."); return; }
+    if (!r.ok) {
+      if (r.reason === "chave") { lostMe(); gameSetup(); return; }
+      toast(r.reason === "wait" ? "Espera uns segundos e tenta outra vez." : "Não foi possível começar."); return;
+    }
     G.token = r.token;
     for (const n of ["3", "2", "1"]) {
       $("#gPanel").replaceChildren(h("div", { class: "big", text: n }));
@@ -1042,6 +1251,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       try {
         const r = await call("submitScore", G.token, score);
         if (r.ok) {
+          if (meInfo) meInfo.recorde = Math.max(meInfo.recorde || 0, r.best);
           msg = score >= r.best ? `Novo recorde! A Equipa ${nm[G.team]} conta com os teus ${r.best} pontos.` : `O teu recorde continua a ser ${r.best} pontos. Tenta outra vez!`;
           confetti([G.team === "menino" ? "--boy" : "--girl", "--accent"]);
         } else msg = "Não foi possível guardar esta pontuação.";
@@ -1157,21 +1367,23 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     try { if (document.fullscreenElement) document.exitFullscreen(); } catch (_) {}
   }
 
-  function render() { renderHeader(); renderPie(); renderTug(); renderTop(); renderNames(); renderGifts(); renderMessages(); renderFesta(); }
+  function render() { renderMe(); renderHeader(); renderPie(); renderTug(); renderTop(); renderNames(); renderGifts(); renderMessages(); renderFesta(); }
 
   // ---------- ações ----------
   async function reserve(id) {
     if (busy.has(id)) return;
-    const name = claimDraft.trim();
+    const name = me ? me.nome : claimDraft.trim();
     if (!name) { toast("Escreve o teu nome para sabermos quem oferece."); $("#claimName")?.focus(); return; }
     if (data.config.precisaCodigo && !codeDraft.trim()) { toast("Escreve o código do evento que recebeste com o convite."); $("#claimCode")?.focus(); return; }
     busy.add(id); render();
     try {
-      const r = await call("reserve", id, name, codeDraft.trim());
+      if (!(await ensureMe(name))) return;
+      const r = await call("reserve", id, codeDraft.trim());
       if (r.ok) {
-        codes[id] = r.code; LS.set("reservas", codes); LS.set("nome", name); LS.set("codigo", codeDraft.trim());
-        openClaim = null; toast("Obrigado! Ficou registado."); confetti();
-      } else if (r.reason === "taken") { openClaim = null; toast("Este presente acabou de ser reservado por outra pessoa."); }
+        codes[id] = r.code; LS.set("reservas", codes); LS.set("codigo", codeDraft.trim());
+        openClaim = null; toast("Obrigado! Ficou registado."); confetti(); afterAction();
+      } else if (r.reason === "chave") lostMe();
+      else if (r.reason === "taken") { openClaim = null; toast("Este presente acabou de ser reservado por outra pessoa."); }
       else if (r.reason === "eventcode") { codeDraft = ""; toast("O código do evento não está certo. Pede-o a quem te enviou a lista."); }
       else if (r.reason === "missing") { openClaim = null; toast("Este presente já não está na lista."); }
       else toast("Escreve o teu nome para continuar.");
@@ -1194,24 +1406,28 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     $("#guessModal").hidden = false;
     const n = $("#guessName");
     if (!n.value) n.value = claimDraft || "";
-    (n.value ? $(".choice.menino") : n).focus();
+    (me || n.value ? $(".choice.menino") : n).focus();
   }
   function closeModal() { $("#guessModal").hidden = true; }
 
   let voting = false;
   document.querySelectorAll("[data-vote]").forEach((b) => b.addEventListener("click", async () => {
     if (voting) return;
-    const choice = b.dataset.vote, name = $("#guessName").value.trim();
+    const choice = b.dataset.vote, name = me ? me.nome : $("#guessName").value.trim();
     if (!name) { toast("Escreve o teu nome para guardar o palpite."); $("#guessName").focus(); return; }
-    voting = true; closeModal(); toast("A guardar o palpite…");
+    voting = true; closeModal();
     try {
-      const r = await call("vote", choice, name, token);
-      if (r.ok) {
-        myVote = choice; LS.set("palpite", choice); LS.set("palpiteNome", name);
-        claimDraft = name; LS.set("nome", name);
-        toast("Palpite registado!");
-        confetti([choice === "menino" ? "--boy" : "--girl", "--accent"]);
-      } else toast("Escreve o teu nome para guardar o palpite.");
+      if (await ensureMe(name)) {
+        toast("A guardar o palpite…");
+        const r = await call("vote", choice);
+        if (r.ok) {
+          myVote = choice; LS.set("palpite", choice);
+          toast("Palpite registado!");
+          confetti([choice === "menino" ? "--boy" : "--girl", "--accent"]);
+          afterAction();
+        } else if (r.reason === "chave") lostMe();
+        else toast("Não foi possível guardar o palpite.");
+      }
     } catch (e) { toast("Não foi possível guardar o palpite. Tenta outra vez mais tarde."); }
     voting = false;
     await refresh(); // os números vêm sempre da base de dados
@@ -1223,17 +1439,19 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   $("#msgName").value = claimDraft;
   $("#msgForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const name = $("#msgName").value.trim(), text = $("#msgText").value.trim(), code = $("#msgCode").value.trim();
+    const name = me ? me.nome : $("#msgName").value.trim(), text = $("#msgText").value.trim(), code = $("#msgCode").value.trim();
     if (!name || !text) { toast("Escreve o teu nome e a mensagem."); return; }
     if (data.config.precisaCodigo && !code) { toast("Escreve o código do evento que recebeste com o convite."); $("#msgCode").focus(); return; }
     const btn = $("#msgBtn"); btn.disabled = true; btn.textContent = "A enviar…";
     try {
-      const r = await call("postMessage", name, text, code);
+      if (!(await ensureMe(name))) return;
+      const r = await call("postMessage", text, code);
       if (r.ok) {
         $("#msgText").value = ""; $("#msgCount").textContent = "0 / 280";
-        LS.set("nome", name); if (code) { codeDraft = code; LS.set("codigo", code); }
-        toast("Mensagem deixada. Obrigado!"); confetti(["--accent", "--girl", "--boy"]);
-      } else if (r.reason === "eventcode") toast("O código do evento não está certo. Pede-o a quem te enviou a lista.");
+        if (code) { codeDraft = code; LS.set("codigo", code); }
+        toast("Mensagem deixada. Obrigado!"); confetti(["--accent", "--girl", "--boy"]); afterAction();
+      } else if (r.reason === "chave") lostMe();
+      else if (r.reason === "eventcode") toast("O código do evento não está certo. Pede-o a quem te enviou a lista.");
       else if (r.reason === "full") toast("O livro de mensagens está cheio.");
       else toast("Escreve o teu nome e a mensagem.");
     } catch (err) { toast("Não foi possível enviar. Verifica a ligação e tenta outra vez."); }
@@ -1243,22 +1461,24 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   $("#addWho").value = claimDraft;
   $("#addForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const gift = $("#addName").value.trim(), desc = $("#addDesc").value.trim(), who = $("#addWho").value.trim();
+    const gift = $("#addName").value.trim(), desc = $("#addDesc").value.trim(), who = me ? me.nome : $("#addWho").value.trim();
     const multi = document.querySelector('input[name="addType"]:checked').value === "multi";
     const give = $("#addGive").checked, code = $("#addCode").value.trim();
     if (!gift || !who) { toast("Escreve o nome da prenda e o teu nome."); return; }
     if (data.config.precisaCodigo && !code) { toast("Escreve o código do evento que recebeste com o convite."); $("#addCode").focus(); return; }
     const btn = $("#addBtn"); btn.disabled = true; btn.textContent = "A acrescentar…";
     try {
-      const r = await call("addGift", gift, desc, multi, who, give, code);
+      if (!(await ensureMe(who))) return;
+      const r = await call("addGift", gift, desc, multi, give, code);
       if (r.ok) {
         if (r.code) { codes[r.id] = r.code; LS.set("reservas", codes); }
-        LS.set("nome", who); claimDraft = who;
+        afterAction();
         if (code) { codeDraft = code; LS.set("codigo", code); }
         $("#addName").value = ""; $("#addDesc").value = "";
         toast(give ? "Prenda acrescentada e registada em teu nome. Obrigado!" : "Prenda acrescentada à lista. Obrigado!");
         confetti();
-      } else if (r.reason === "exists") toast("Essa prenda já está na lista. Procura-a acima.");
+      } else if (r.reason === "chave") lostMe();
+      else if (r.reason === "exists") toast("Essa prenda já está na lista. Procura-a acima.");
       else if (r.reason === "eventcode") toast("O código do evento não está certo. Pede-o a quem te enviou a lista.");
       else if (r.reason === "full") toast("Já foram acrescentadas muitas prendas. Fala com os pais.");
       else toast("Escreve o nome da prenda e o teu nome.");
@@ -1267,6 +1487,9 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   });
 
   $("#openFesta").addEventListener("click", openFesta);
+  $("#meBtn").addEventListener("click", () => (me ? openMine() : openLogin()));
+  $("#meModal").addEventListener("click", (e) => { if (e.target.id === "meModal") closeMe(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#meModal").hidden) closeMe(); });
   $("#playBtn").addEventListener("click", openGame);
   $("#gameClose").addEventListener("click", closeGame);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#game").hidden) closeGame(); });
@@ -1286,7 +1509,22 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
 
   // ---------- arranque ----------
   render();
-  refresh().then(() => { if (location.hash === "#festa") openFesta(); else if (!myVote && !data.config.revelacao) openModal(); });
+  (async () => {
+    // link pessoal (#c=CÓDIGO): entra com esse convidado e tira o código do endereço
+    const m = location.hash.match(/^#c=([A-Za-z0-9-]{8,12})$/);
+    if (m) {
+      history.replaceState(null, "", location.pathname + location.search);
+      try {
+        const r = await syncMe(m[1]);
+        if (r.ok) { LS.set("guardado", true); renderMe(); toast(`Olá, ${r.nome}! Aqui estão as tuas escolhas.`); }
+        else toast("Este link de acesso não é válido.");
+      } catch (_) {}
+    } else if (me) {
+      try { const r = await syncMe(); if (!r.ok && r.reason === "chave") lostMe(); } catch (_) {}
+    }
+    await refresh();
+    if (location.hash === "#festa") openFesta(); else if (!myVote && !data.config.revelacao) openModal();
+  })();
   setInterval(tick, 1000);
   setInterval(() => { if (!openClaim && !document.hidden) refresh(); }, 30000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden && !openClaim) refresh(); });
