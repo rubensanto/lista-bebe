@@ -101,6 +101,8 @@ section.block { display: flex; flex-direction: column; gap: 16px; }
 .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
 .photo-grid figure { margin: 0; position: relative; border-radius: 14px; overflow: hidden; aspect-ratio: 1; background: var(--line); }
 .photo-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-del { position: absolute; top: 6px; right: 6px; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; font-size: 18px; line-height: 1; }
+.msg-del { margin-left: 8px; padding: 0; font-size: 13px; }
 .photo-grid figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 8px; font-size: 12px; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.6)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fphoto { display: grid; place-items: center; min-height: 0; overflow: hidden; border-radius: 16px; }
 .fphoto img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; animation: fadeIn .6s ease; }
@@ -682,6 +684,8 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     removeGift: (id) => ["remove_gift", { p_prenda: id, p_chave: me && me.chave }],
     photoSlot: () => ["photo_slot", { p_chave: me && me.chave }],
     photoDone: (p) => ["photo_done", { p_chave: me && me.chave, p_path: p }],
+    deletePhoto: (p) => ["delete_photo", { p_chave: me && me.chave, p_path: p }],
+    deleteMessage: (id) => ["delete_message", { p_chave: me && me.chave, p_id: id }],
     cancelReservation: (code) => ["cancel_reservation", { p_code: code || "" }],
     addGift: (gift, desc, multi, give, code) => ["add_gift", { p_nome: gift, p_detalhes: desc, p_multi: multi, p_chave: me && me.chave, p_dar: give, p_codigo: code || "" }],
     vote: (choice) => ["vote", { p_palpite: choice, p_chave: me && me.chave }],
@@ -1227,12 +1231,13 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   }
 
   function renderMessages() {
-    const list = data.mensagens;
+    const list = data.mensagens, mine = new Set((me && meInfo && meInfo.minhasMensagens) || []);
     $("#msgs").replaceChildren(...(list.length ? list.map((m) => {
       const d = m.data ? new Date(m.data) : null;
       return h("li", {},
         h("p", { text: m.texto }),
-        h("div", { class: "by" }, h("strong", { text: m.nome }), d ? " · " + d.toLocaleDateString("pt-PT", { day: "numeric", month: "long" }) : ""));
+        h("div", { class: "by" }, h("strong", { text: m.nome }), d ? " · " + d.toLocaleDateString("pt-PT", { day: "numeric", month: "long" }) : "",
+          mine.has(m.id) ? h("button", { class: "btn-text msg-del", type: "button", onclick: () => deleteMessage(m.id) }, "Apagar") : null));
     }) : [h("li", {}, h("p", { class: "who", text: "Ainda não há mensagens. Sê a primeira pessoa a escrever!" }))]));
   }
 
@@ -1798,17 +1803,49 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     finally {
       btn.disabled = false;
       st.textContent = ok ? `${ok} ${ok === 1 ? "foto enviada" : "fotos enviadas"}. Obrigado!` : "";
-      if (ok) { confetti(); afterAction(); }
+      if (ok) { confetti(); afterAction(); if (me) { try { await syncMe(); } catch (_) {} } }
       refresh();
     }
   }
+  async function deletePhoto(p) {
+    if (!confirm("Apagar esta foto? Deixa de aparecer no site e no ecrã da festa.")) return;
+    try {
+      const r = await call("deletePhoto", p);
+      if (r.ok) {
+        // passo 2: apagar o ficheiro (só é permitido porque o autor acabou de o marcar)
+        try {
+          const headers = { apikey: SUPABASE_KEY };
+          if (!SUPABASE_KEY.startsWith("sb_")) headers.Authorization = "Bearer " + SUPABASE_KEY;
+          await fetch(`${SUPABASE_URL}/storage/v1/object/fotos/${encodeURIComponent(p)}`, { method: "DELETE", headers });
+        } catch (_) {}
+        toast("Foto apagada.");
+      } else if (r.reason === "chave") lostMe();
+      else toast("Não foi possível apagar a foto.");
+    } catch (_) { toast("Não foi possível apagar. Verifica a ligação e tenta outra vez."); }
+    if (me) { try { await syncMe(); } catch (_) {} }
+    photoKey = ""; refresh();
+  }
+  async function deleteMessage(id) {
+    if (!confirm("Apagar esta mensagem?")) return;
+    try {
+      const r = await call("deleteMessage", id);
+      if (r.ok) toast("Mensagem apagada.");
+      else if (r.reason === "chave") lostMe();
+      else toast("Não foi possível apagar a mensagem.");
+    } catch (_) { toast("Não foi possível apagar. Verifica a ligação e tenta outra vez."); }
+    if (me) { try { await syncMe(); } catch (_) {} }
+    refresh();
+  }
   let photoKey = "";
   function renderPhotos() {
-    const list = (data.fotos || []).slice(0, 12), key = list.map((f) => f.path).join();
+    const mine = new Set((me && meInfo && meInfo.minhasFotos) || []);
+    const list = (data.fotos || []).filter((f, i) => i < 12 || mine.has(f.path));
+    const key = list.map((f) => f.path + (mine.has(f.path) ? "*" : "")).join();
     if (key === photoKey && $("#photoGrid").childElementCount) return;   // evita piscar a cada atualização
     photoKey = key;
     $("#photoGrid").replaceChildren(...(list.length
-      ? list.map((f) => h("figure", {}, h("img", { src: photoUrl(f.path), alt: `Foto enviada por ${f.nome}`, loading: "lazy" }), h("figcaption", { text: f.nome })))
+      ? list.map((f) => h("figure", {}, h("img", { src: photoUrl(f.path), alt: `Foto enviada por ${f.nome}`, loading: "lazy" }), h("figcaption", { text: f.nome }),
+          mine.has(f.path) ? h("button", { class: "photo-del", type: "button", title: "Apagar esta foto", "aria-label": "Apagar esta foto", onclick: () => deletePhoto(f.path) }, "×") : null))
       : [h("p", { class: "who", text: "Ainda não há fotos. Sê o primeiro a enviar!" })]));
   }
   let festaFotoI = 0, festaFotoTop = "";
@@ -1999,6 +2036,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
         $("#msgText").value = ""; $("#msgCount").textContent = "0 / 280";
         if (code) { codeDraft = code; LS.set("codigo", code); }
         toast("Mensagem deixada. Obrigado!"); confetti(["--accent", "--girl", "--boy"]); afterAction();
+        try { await syncMe(); } catch (_) {}
       } else if (r.reason === "chave") lostMe();
       else if (r.reason === "eventcode") toast("O código do evento não está certo. Pede-o a quem te enviou a lista.");
       else if (r.reason === "full") toast("O livro de mensagens está cheio.");
