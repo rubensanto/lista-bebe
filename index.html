@@ -94,6 +94,20 @@ section.block { display: flex; flex-direction: column; gap: 16px; }
 .tag h3 { font-size: 21px; line-height: 1.2; overflow-wrap: anywhere; }
 .desc { margin: 0; color: var(--muted); overflow-wrap: anywhere; white-space: pre-line; }
 .brand { margin: -6px 0 0; font-size: 12.5px; color: var(--muted); opacity: .85; }
+/* fotos da festa */
+.photo-send { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.photo-send .field { min-width: 220px; }
+.photo-btn { font-size: 15px; padding: 10px 18px; }
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.photo-grid figure { margin: 0; position: relative; border-radius: 14px; overflow: hidden; aspect-ratio: 1; background: var(--line); }
+.photo-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-grid figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 8px; font-size: 12px; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.6)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fphoto { display: grid; place-items: center; min-height: 0; overflow: hidden; border-radius: 16px; }
+.fphoto img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; animation: fadeIn .6s ease; }
+@media (max-width: 800px) { .fphoto { height: 50vh; } }
+.fphoto-empty { display: flex; flex-direction: column; align-items: center; gap: 1vh; font-size: clamp(40px, 8vh, 90px); text-align: center; }
+.fphoto-empty span { font-size: clamp(14px, 2.4vh, 28px); color: var(--muted); }
+@keyframes fadeIn { from { opacity: 0; } }
 .brand b { font-weight: 600; }
 .shop { color: var(--ink); font-weight: 600; text-underline-offset: 3px; align-self: flex-start; }
 .actions { margin-top: auto; padding-top: 6px; display: flex; flex-direction: column; gap: 10px; }
@@ -360,7 +374,13 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   .festa-stat b { font-size: clamp(22px, 4.6vh, 56px); }
   .festa-msg { font-size: clamp(16px, 3.4vh, 44px); display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
   .festa-by { font-size: clamp(12px, 2vh, 24px); }
-  .festa-top { flex-direction: column; flex-wrap: nowrap; gap: 1vh; font-size: clamp(14px, 2.8vh, 32px); }
+  .festa-top { flex-direction: column; flex-wrap: nowrap; gap: .5vh; font-size: clamp(12px, 2.1vh, 24px); }
+  .festa { grid-template-columns: 1fr 1.6fr 1fr; }
+  .festa-col { display: flex; flex-direction: column; gap: 1.8vh; min-height: 0; }
+  .festa-col > .festa-card:first-child { flex: 1 1 auto; justify-content: center; }
+  .festa-col .festa-pie { flex-wrap: wrap; justify-content: center; }
+  .festa-topcard { flex: 0 0 auto; padding-top: 1.4vh; padding-bottom: 1.4vh; gap: .8vh; }
+  .festa-photo .fphoto { flex: 1 1 auto; height: 0; }
   .festa .tug-name { font-size: clamp(18px, 3.4vh, 40px); }
   .festa .tug-n { font-size: clamp(12px, 1.8vh, 20px); }
   .festa .tug-field { height: clamp(40px, 7vh, 80px); }
@@ -519,6 +539,20 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     </form>
   </section>
 
+  <section class="block" id="photoBlock">
+    <div class="block-head">
+      <h2>Fotos da festa</h2>
+      <p>Tira fotos e envia-as daqui: vão aparecendo no ecrã da festa.</p>
+    </div>
+    <div class="photo-send">
+      <div class="field"><label for="photoName">O teu nome</label><input id="photoName" maxlength="40" placeholder="Ex.: Tia Ana" autocomplete="name"></div>
+      <button class="btn-primary photo-btn" type="button" id="photoBtn">📷 Enviar fotos</button>
+      <input type="file" id="photoInput" accept="image/*" multiple hidden>
+      <span class="who" id="photoStatus"></span>
+    </div>
+    <div class="photo-grid" id="photoGrid"></div>
+  </section>
+
   <section class="block">
     <div class="block-head">
       <h2>Mensagens para o bebé</h2>
@@ -563,19 +597,25 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     <div class="countdown" id="fCountdown" hidden></div>
     <div class="festa-qr"><div id="fQr"></div><span>Aponta a câmara<br>do telemóvel<br>para participar</span></div>
   </div>
-  <div class="festa-card">
-    <span class="label" id="fPieLabel"></span>
-    <div class="festa-pie"><svg class="pie" id="fPie" viewBox="0 0 120 120" role="img" aria-label="Palpites"></svg><div class="festa-legend" id="fLegend"></div></div>
-    <div class="festa-stat" id="fStats"></div>
+  <div class="festa-col">
+    <div class="festa-card">
+      <span class="label" id="fPieLabel"></span>
+      <div class="festa-pie"><svg class="pie" id="fPie" viewBox="0 0 120 120" role="img" aria-label="Palpites"></svg><div class="festa-legend" id="fLegend"></div></div>
+    </div>
+    <div class="festa-card festa-topcard">
+      <span class="label" id="fTopLabel">Jogos</span>
+      <ol class="top5 festa-top" id="fTop5"></ol>
+    </div>
+  </div>
+  <div class="festa-card festa-photo">
+    <span class="label">Fotos da festa</span>
+    <div class="fphoto" id="fPhoto"></div>
+    <span class="festa-by" id="fPhotoBy"></span>
   </div>
   <div class="festa-card">
     <span class="label">Mensagens para o bebé</span>
     <p class="festa-msg" id="fMsg"></p>
     <span class="festa-by" id="fMsgBy"></span>
-  </div>
-  <div class="festa-card">
-    <span class="label" id="fTopLabel">Jogos</span>
-    <ol class="top5 festa-top" id="fTop5"></ol>
   </div>
   <div class="festa-card festa-wide">
     <span class="label" id="fTugLabel">Cabo de guerra</span>
@@ -640,6 +680,8 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     reserve: (id, code, qty) => ["reserve", { p_prenda: id, p_chave: me && me.chave, p_codigo: code || "", p_quantidade: qty || 1 }],
     setQuantity: (code, n) => ["set_quantity", { p_code: code || "", p_quantidade: n }],
     removeGift: (id) => ["remove_gift", { p_prenda: id, p_chave: me && me.chave }],
+    photoSlot: () => ["photo_slot", { p_chave: me && me.chave }],
+    photoDone: (p) => ["photo_done", { p_chave: me && me.chave, p_path: p }],
     cancelReservation: (code) => ["cancel_reservation", { p_code: code || "" }],
     addGift: (gift, desc, multi, give, code) => ["add_gift", { p_nome: gift, p_detalhes: desc, p_multi: multi, p_chave: me && me.chave, p_dar: give, p_codigo: code || "" }],
     vote: (choice) => ["vote", { p_palpite: choice, p_chave: me && me.chave }],
@@ -867,7 +909,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       b.replaceChildren(h("span", { class: "nm", text: "Já participei" }));
       b.title = "Entrar com o meu código"; b.setAttribute("aria-label", "Já participei: entrar com o meu código");
     }
-    ["#guessName", "#msgName", "#addWho"].forEach((s) => { $(s).closest(".field").hidden = !!me; });
+    ["#guessName", "#msgName", "#addWho", "#photoName"].forEach((s) => { $(s).closest(".field").hidden = !!me; });
     $("#addWho").required = !me;
     $("#guessText").textContent = me ? `${me.nome}, qual é o teu palpite? Podes mudar quando quiseres.` : "Qual é o teu palpite? Escreve o teu nome e escolhe.";
     const nRes = Object.keys(codes).length;
@@ -1121,7 +1163,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       h("div", { class: "tag-head" }, h("span", { class: "pill", text: pillText }), price ? h("span", { class: "price", text: price }) : null),
       h("h3", { text: g.name }));
     // marca preferida: só uma sugestão, em letra pequena
-    if (g.brand) li.append(h("p", { class: "brand" }, "De preferência ", h("b", { text: g.brand }), " · pode ser outra marca"));
+    if (g.brand) li.append(h("p", { class: "brand" }, "De preferência ", h("b", { text: g.brand })));
     if (g.desc) li.append(h("p", { class: "desc", text: g.desc }));
     if (/^https?:\/\//i.test(g.link)) li.append(h("a", { class: "shop", href: g.link, target: "_blank", rel: "noopener noreferrer", text: "Ver na loja ↗" }));
 
@@ -1263,8 +1305,8 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     const tops = (data.jogo && data.jogo.tops) || {};
     const played = GAME_KEYS.filter((k) => (tops[k] || []).length);
     const k = played.length ? played[festaTopI % played.length] : null;
-    $("#fTopLabel").textContent = k ? `Top 5 · ${GAMES[k].nome}` : "Jogos";
-    $("#fTop5").replaceChildren(...(k ? tops[k].map(topItem) : [h("li", { class: "who", text: "Ainda ninguém jogou. Joguem no telemóvel!" })]));
+    $("#fTopLabel").textContent = k ? `Top 3 · ${GAMES[k].nome}` : "Jogos";
+    $("#fTop5").replaceChildren(...(k ? tops[k].slice(0, 3).map(topItem) : [h("li", { class: "who", text: "Ainda ninguém jogou. Joguem no telemóvel!" })]));
   }
   function renderTop() { renderGames(); renderFestaTop(); }
 
@@ -1711,6 +1753,78 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     $("#namesGrid").replaceChildren(card("menino", "b", nm.menino, mb), card("menina", "g", nm.menina, mg));
   }
 
+  // ---------- fotos da festa ----------
+  const photoUrl = (p) => `${SUPABASE_URL}/storage/v1/object/public/fotos/${encodeURIComponent(p)}`;
+  // reduz a foto para JPEG até 1600 px (fica leve e já direita)
+  async function shrinkPhoto(file) {
+    let src = null;
+    try { src = await createImageBitmap(file, { imageOrientation: "from-image" }); } catch (_) {}
+    if (!src) src = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = URL.createObjectURL(file); });
+    const k = Math.min(1, 1600 / Math.max(src.width, src.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(src.width * k); c.height = Math.round(src.height * k);
+    c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
+    return new Promise((res) => c.toBlob(res, "image/jpeg", 0.82));
+  }
+  async function uploadPhoto(blob, p) {
+    const headers = { apikey: SUPABASE_KEY, "Content-Type": "image/jpeg", "x-upsert": "false" };
+    if (!SUPABASE_KEY.startsWith("sb_")) headers.Authorization = "Bearer " + SUPABASE_KEY;
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/fotos/${encodeURIComponent(p)}`, { method: "POST", headers, body: blob });
+    if (!res.ok) throw new Error("upload " + res.status);
+  }
+  async function sendPhotos(files) {
+    const name = me ? me.nome : $("#photoName").value.trim(), st = $("#photoStatus"), btn = $("#photoBtn");
+    if (!name) { toast("Escreve o teu nome antes de enviar fotos."); $("#photoName").focus(); return; }
+    btn.disabled = true;
+    let ok = 0;
+    try {
+      if (!(await ensureMe(name))) return;
+      for (const [i, f] of files.entries()) {
+        st.textContent = `A enviar ${i + 1} de ${files.length}…`;
+        try {
+          const blob = await shrinkPhoto(f);
+          const r = await call("photoSlot");
+          if (!r.ok) {
+            if (r.reason === "chave") lostMe();
+            else toast(r.reason === "limit" ? "Já enviaste muitas fotos. Obrigado!" : r.reason === "wait" ? "Espera um minuto antes de enviar mais fotos." : "Não foi possível enviar a foto.");
+            break;
+          }
+          await uploadPhoto(blob, r.path);
+          const d = await call("photoDone", r.path);
+          if (d.ok) ok++;
+        } catch (_) { toast("Não foi possível enviar uma das fotos."); }
+      }
+    } catch (_) { toast("Não foi possível enviar. Verifica a ligação e tenta outra vez."); }
+    finally {
+      btn.disabled = false;
+      st.textContent = ok ? `${ok} ${ok === 1 ? "foto enviada" : "fotos enviadas"}. Obrigado!` : "";
+      if (ok) { confetti(); afterAction(); }
+      refresh();
+    }
+  }
+  let photoKey = "";
+  function renderPhotos() {
+    const list = (data.fotos || []).slice(0, 12), key = list.map((f) => f.path).join();
+    if (key === photoKey && $("#photoGrid").childElementCount) return;   // evita piscar a cada atualização
+    photoKey = key;
+    $("#photoGrid").replaceChildren(...(list.length
+      ? list.map((f) => h("figure", {}, h("img", { src: photoUrl(f.path), alt: `Foto enviada por ${f.nome}`, loading: "lazy" }), h("figcaption", { text: f.nome })))
+      : [h("p", { class: "who", text: "Ainda não há fotos. Sê o primeiro a enviar!" })]));
+  }
+  let festaFotoI = 0, festaFotoTop = "";
+  function showFestaPhoto() {
+    const list = data.fotos || [], box = $("#fPhoto");
+    if (!list.length) {
+      box.replaceChildren(h("div", { class: "fphoto-empty" }, "📷", h("span", { text: "Enviem fotos pelo telemóvel: aparecem aqui!" })));
+      $("#fPhotoBy").textContent = "";
+      return;
+    }
+    const f = list[festaFotoI % list.length];
+    const img = h("img", { src: photoUrl(f.path), alt: `Foto enviada por ${f.nome}` });
+    img.onload = () => { box.replaceChildren(img); $("#fPhotoBy").textContent = "📷 " + f.nome; };
+    const nx = list[(festaFotoI + 1) % list.length]; if (nx) new Image().src = photoUrl(nx.path);   // pré-carrega a seguinte
+  }
+
   // ---------- modo festa (para TV) ----------
   let festaMsgI = 0, festaTimer = null, festaRefresh = null;
   function showFestaMsg() {
@@ -1732,11 +1846,9 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     $("#fLegend").replaceChildren(
       h("div", {}, dot("boy"), h("strong", { text: nm.menino }), " " + pct(b)),
       h("div", {}, dot("girl"), h("strong", { text: nm.menina }), " " + pct(g)));
-    const singles = data.gifts.filter((x) => !x.multi), taken = singles.filter((x) => x.count > 0).length;
-    const ofertas = data.gifts.filter((x) => x.multi).reduce((a, x) => a + (x.units || x.count), 0);
-    $("#fStats").replaceChildren(
-      h("div", {}, h("b", { text: `${taken}/${singles.length}` }), "prendas reservadas"),
-      h("div", {}, h("b", { text: String(ofertas) }), ofertas === 1 ? "oferta de vários" : "ofertas de vários"));
+    const fotos = data.fotos || [];
+    if (fotos.length && fotos[0].path !== festaFotoTop) { festaFotoTop = fotos[0].path; festaFotoI = 0; showFestaPhoto(); }   // foto nova: mostra já
+    else if (!$("#fPhoto").childElementCount) showFestaPhoto();
     showFestaMsg();
   }
   function openFesta() {
@@ -1752,6 +1864,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     clearInterval(festaTimer);
     festaTimer = setInterval(() => {
       festaTopI++; renderFestaTop();
+      festaFotoI++; showFestaPhoto();
       festaMsgI++; const el = $("#fMsg"); el.style.opacity = 0;
       setTimeout(() => { showFestaMsg(); el.style.opacity = 1; }, 500);
     }, 8000);
@@ -1764,7 +1877,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     try { if (document.fullscreenElement) document.exitFullscreen(); } catch (_) {}
   }
 
-  function render() { renderMe(); renderHeader(); renderPie(); renderTug(); renderTop(); renderNames(); renderGifts(); renderMessages(); renderFesta(); }
+  function render() { renderMe(); renderHeader(); renderPie(); renderTug(); renderTop(); renderNames(); renderGifts(); renderMessages(); renderPhotos(); renderFesta(); }
 
   // ---------- ações ----------
   async function reserve(id) {
@@ -1926,6 +2039,15 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   $("#openFesta").addEventListener("click", openFesta);
   $("#meBtn").addEventListener("click", () => (me ? openMine() : openLogin()));
   $("#resBtn").addEventListener("click", openReservas);
+  $("#photoBtn").addEventListener("click", () => {
+    if (!me && !$("#photoName").value.trim()) { toast("Escreve o teu nome antes de enviar fotos."); $("#photoName").focus(); return; }
+    $("#photoInput").click();
+  });
+  $("#photoInput").addEventListener("change", (e) => {
+    const files = [...e.target.files].filter((f) => /^image\//.test(f.type) || /\.(jpe?g|png|heic|heif|webp)$/i.test(f.name)).slice(0, 6);
+    e.target.value = "";
+    if (files.length) sendPhotos(files);
+  });
   $("#meModal").addEventListener("click", (e) => { if (e.target.id === "meModal") closeMe(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#meModal").hidden) closeMe(); });
   $("#gameClose").addEventListener("click", closeGame);
