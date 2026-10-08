@@ -307,6 +307,72 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .team-pick .b { background: var(--boy-soft); color: var(--boy); }
 .team-pick .g { background: var(--girl-soft); color: var(--girl); }
 .team-pick button[aria-pressed="true"] { border-color: currentColor; }
+/* grelha de jogos */
+.games { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.game-card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.game-card .gico { font-size: 34px; line-height: 1; }
+.game-card h3 { font-size: 21px; }
+.game-card > p { margin: 0; color: var(--muted); font-size: 14px; }
+.game-card .top5 { font-size: 14px; gap: 4px; }
+/* palco dos jogos feitos com botões (fralda, memória, embalar) */
+.game-stage { position: absolute; inset: calc(64px + env(safe-area-inset-top, 0px)) 12px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.5vh; text-align: center; user-select: none; -webkit-user-select: none; }
+.fr-steps { display: flex; gap: 6px; }
+.fr-steps span { width: 34px; height: 8px; border-radius: 4px; background: var(--line); }
+.fr-steps span.done { background: var(--accent); }
+.fr-baby { width: min(44vw, 200px); aspect-ratio: 1; border-radius: 50%; background: var(--card); display: grid; place-items: center; font-size: min(24vw, 110px); border: 4px dashed var(--muted); }
+.fr-baby.ok { animation: pop .3s ease; border-color: var(--sage); }
+@keyframes pop { 50% { transform: scale(1.08); } }
+.fr-next { font-weight: 700; min-height: 1.5em; }
+.fr-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: min(100%, 540px); }
+.fr-card { aspect-ratio: 1 / 1.2; border-radius: 16px; background: var(--card); border: 2px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: min(8vw, 40px); touch-action: none; cursor: grab; padding: 4px; box-shadow: var(--shadow); }
+.fr-card small { font-size: 11px; font-weight: 600; color: var(--muted); line-height: 1.1; }
+.fr-card.used { opacity: .2; pointer-events: none; }
+.fr-card.drag { position: relative; z-index: 5; cursor: grabbing; box-shadow: 0 12px 30px rgba(0,0,0,.25); }
+.fr-card.bad { animation: shake .3s; border-color: var(--accent); }
+@keyframes shake { 25% { translate: -6px 0; } 75% { translate: 6px 0; } }
+.mem { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: min(92vw, 62vh, 440px); }
+.mem button { aspect-ratio: 1; border-radius: 14px; padding: 0; font-size: min(9vw, 6vh, 42px); background: linear-gradient(135deg, var(--boy), var(--girl)); border: 0; }
+.mem button.up { background: var(--card); box-shadow: inset 0 0 0 3px var(--accent); }
+.mem button.done { background: var(--card); opacity: .55; }
+.emb-wrap { position: relative; display: grid; place-items: center; width: min(58vw, 34vh, 240px); aspect-ratio: 1; }
+.emb-face { font-size: min(28vw, 18vh, 130px); line-height: 1; }
+.emb-face.bob { animation: bob .8s ease-in-out; }
+@keyframes bob { 30% { transform: rotate(-8deg) translateY(-4px); } 70% { transform: rotate(8deg); } }
+.emb-ring { position: absolute; inset: 0; border: 5px solid var(--accent); border-radius: 50%; opacity: 0; pointer-events: none; }
+.emb-ring.go { animation: ring .8s ease-out; }
+@keyframes ring { from { transform: scale(.55); opacity: .9; } to { transform: scale(1.1); opacity: 0; } }
+.emb-meter { width: min(80vw, 360px); height: 14px; border-radius: 7px; background: var(--line); overflow: hidden; }
+.emb-meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--boy), var(--girl)); transition: width .2s; }
+.emb-fb { min-height: 1.5em; font-weight: 700; }
+.emb-fb.good { color: var(--sage); }
+.emb-fb.bad { color: var(--accent); }
+.emb-btn { width: min(72vw, 300px); height: 84px; font-size: 22px; touch-action: manipulation; }
+/* modo festa compacto: tudo cabe num ecrã, sem scroll */
+@media (min-width: 801px) {
+  .festa { height: 100vh; height: 100dvh; overflow: hidden; padding: 2.2vh 2vw; grid-template-columns: 1.15fr 1fr 1fr; grid-template-rows: auto minmax(0, 1fr) auto; gap: 1.8vh 1.4vw; }
+  .festa-head { gap: 1.5vw; padding-right: 56px; flex-wrap: nowrap; }
+  .festa-head h1 { font-size: clamp(26px, 6.2vh, 84px); }
+  .festa-head .eyebrow { font-size: clamp(11px, 1.6vh, 18px); }
+  .festa .countdown { padding: 1.2vh 1.2vw; gap: .6vh; }
+  .festa .cd-grid b { font-size: clamp(22px, 5.2vh, 64px); }
+  .festa .cd-grid span, .festa .cd-sub { font-size: clamp(10px, 1.5vh, 16px); }
+  .festa-qr { padding: 1vh 1vw 1vh 1vh; font-size: clamp(11px, 1.6vh, 18px); }
+  .festa-qr img, .festa-qr canvas { width: clamp(70px, 13vh, 150px); }
+  .festa-card { padding: 2vh 1.4vw; gap: 1.2vh; border-radius: 22px; min-height: 0; overflow: hidden; justify-content: flex-start; }
+  .festa-card > .label { font-size: clamp(10px, 1.5vh, 15px); }
+  .festa-pie { gap: 1.2vw; flex-wrap: nowrap; }
+  .festa-pie svg { width: min(24vh, 12vw); }
+  .festa-legend { font-size: clamp(14px, 2.8vh, 34px); gap: .8vh; }
+  .festa-stat { font-size: clamp(12px, 1.9vh, 22px); gap: 1.4vw; margin-top: auto; }
+  .festa-stat b { font-size: clamp(22px, 4.6vh, 56px); }
+  .festa-msg { font-size: clamp(16px, 3.4vh, 44px); display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+  .festa-by { font-size: clamp(12px, 2vh, 24px); }
+  .festa-top { flex-direction: column; flex-wrap: nowrap; gap: 1vh; font-size: clamp(14px, 2.8vh, 32px); }
+  .festa .tug-name { font-size: clamp(18px, 3.4vh, 40px); }
+  .festa .tug-n { font-size: clamp(12px, 1.8vh, 20px); }
+  .festa .tug-field { height: clamp(40px, 7vh, 80px); }
+  .festa .tug-status { font-size: clamp(13px, 2.1vh, 24px); }
+}
 /* reações ao vivo */
 .react-bar { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 15; display: flex; gap: 2px; padding: 6px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow); }
 .react-bar button { font-size: 22px; line-height: 1; padding: 8px 10px; background: transparent; border-radius: 999px; transition: transform .12s ease; }
@@ -404,21 +470,15 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   <div class="panel" id="tugPanel">
     <span class="label" id="tugLabel">Cabo de guerra</span>
     <div class="tug"></div>
-    <span class="who tug-hint">Cada palpite vale 10 pontos; o jogo “Apanha as chupetas” soma o resto.</span>
+    <span class="who tug-hint">Cada palpite vale 10 pontos; os jogos somam o resto (conta o melhor resultado de cada pessoa em cada jogo).</span>
   </div>
 
   <section class="block" id="gameBlock">
     <div class="block-head">
-      <h2>Apanha as chupetas</h2>
-      <p>30 segundos para apanhar tudo o que conseguires. Os teus pontos somam para a tua equipa e puxam a corda!</p>
+      <h2>Jogos</h2>
+      <p>Joga as vezes que quiseres: em cada jogo só conta o teu melhor resultado, que soma para a tua equipa no cabo de guerra.</p>
     </div>
-    <div class="game-row">
-      <div class="panel game-cta">
-        <div class="row"><button class="btn-primary" type="button" id="playBtn">Jogar</button><span class="who" id="myBest"></span></div>
-        <span class="who">Chupeta +1 · Estrela +3 · Fralda suja −2</span>
-      </div>
-      <div class="panel"><span class="label">Top 5</span><ol class="top5" id="top5"></ol></div>
-    </div>
+    <div class="games" id="gamesGrid"></div>
   </section>
 
   <section class="block" id="namesBlock" hidden>
@@ -520,17 +580,18 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     <p class="festa-msg" id="fMsg"></p>
     <span class="festa-by" id="fMsgBy"></span>
   </div>
+  <div class="festa-card">
+    <span class="label" id="fTopLabel">Jogos</span>
+    <ol class="top5 festa-top" id="fTop5"></ol>
+  </div>
   <div class="festa-card festa-wide">
     <span class="label" id="fTugLabel">Cabo de guerra</span>
     <div class="tug"></div>
   </div>
-  <div class="festa-card festa-wide">
-    <span class="label">Top 5 · Apanha as chupetas</span>
-    <ol class="top5 festa-top" id="fTop5"></ol>
-  </div>
 </section>
 <div class="game" id="game" hidden>
   <canvas id="gameCanvas"></canvas>
+  <div class="game-stage" id="gStage" hidden></div>
   <div class="game-hud"><span id="gScore">0 pts</span><span id="gTime">30s</span></div>
   <div class="game-panel" id="gPanel"></div>
   <button class="festa-close" type="button" id="gameClose" aria-label="Fechar o jogo">×</button>
@@ -592,7 +653,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     postMessage: (text, code) => ["post_message", { p_chave: me && me.chave, p_texto: text, p_codigo: code || "" }],
     react: (k) => ["react", { p_emoji: k }],
     getReactions: (since) => ["get_reactions", { p_since: since }],
-    startGame: (team) => ["start_game", { p_chave: me && me.chave, p_equipa: team }],
+    startGame: (team, jogo) => ["start_game", { p_chave: me && me.chave, p_equipa: team, p_jogo: jogo || "chupetas" }],
     submitScore: (token, pts) => ["submit_score", { p_token: token, p_pontos: pts }],
   };
   async function call(fn, ...args) {
@@ -790,8 +851,10 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
         ? h("ul", { class: "me-gifts" }, r.reservas.map((x) => h("li", {}, h("span", { text: x.quantidade > 1 ? `${x.nome} ×${x.quantidade}` : x.nome }),
             h("button", { class: "btn-text", type: "button", onclick: async (e) => { e.currentTarget.disabled = true; await cancel(x.prenda); openMine(); } }, "cancelar"))))
         : h("span", { class: "who", text: "Ainda não escolheste nenhuma." })));
-    rows.push(h("div", { class: "me-row" }, h("span", { class: "label", text: "Jogo" }),
-      r.recorde != null ? h("span", {}, "Recorde: ", h("strong", { text: `${r.recorde} pontos` })) : h("span", { class: "who", text: "Ainda não jogaste." })));
+    const recs = Object.entries(r.recordes || {}).filter(([k]) => GAMES[k]);
+    rows.push(h("div", { class: "me-row col" }, h("span", { class: "label", text: "Jogos (o teu melhor)" }),
+      recs.length ? h("ul", { class: "me-gifts" }, recs.map(([k, v]) => h("li", {}, h("span", { text: GAMES[k].nome }), h("strong", { text: `${v} pts` }))))
+                  : h("span", { class: "who", text: "Ainda não jogaste." })));
     if (r.mensagens) rows.push(h("div", { class: "me-row" }, h("span", { class: "label", text: "Mensagens" }), h("span", { text: `${r.mensagens} deixada${r.mensagens === 1 ? "" : "s"}` })));
     body.replaceChildren(...rows);
   }
@@ -1172,19 +1235,45 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     $("#fTugLabel").textContent = label;
   }
 
-  // ---------- top 5 do jogo ----------
-  function renderTop() {
-    const top = (data.jogo && data.jogo.top) || [];
-    const items = top.length
-      ? top.map((t) => h("li", {},
-          h("span", { class: "team", style: `background: var(--${t.equipa === "menino" ? "boy" : "girl"})` }),
-          h("span", { text: t.nome }), h("span", { class: "pts", text: String(t.pontos) })))
-      : [h("li", { class: "who", text: "Ainda ninguém jogou. Sê o primeiro!" })];
-    $("#top5").replaceChildren(...items);
-    $("#fTop5").replaceChildren(...items.map((n) => n.cloneNode(true)));
-    const best = me && meInfo && meInfo.recorde != null ? meInfo.recorde : null;
-    $("#myBest").textContent = best != null ? `O teu melhor: ${best} pontos` : "";
+  // ---------- jogos: lista, top 5 de cada um ----------
+  const GAMES = {
+    chupetas: { nome: "Apanha as chupetas", ico: "🍼", desc: "30 segundos para apanhar tudo o que cai do céu.",
+      how: "Mexe o berço com o dedo (ou com as setas) e apanha o que cai. Tens 30 segundos!", rules: "Chupeta +1 · Estrela +3 · Fralda suja −2" },
+    fralda: { nome: "Muda a fralda", ico: "🧷", desc: "As 5 peças pela ordem certa, 3 vezes seguidas, contra o relógio.",
+      how: "Arrasta cada peça para o bebé (ou toca nela) pela ordem certa. São 3 rondas.", rules: "Fralda suja fora → toalhita → creme → fralda nova → molas. Peça errada: +2 s." },
+    memoria: { nome: "Memória de bebé", ico: "🧸", desc: "Encontra os 8 pares com o menor número de jogadas.",
+      how: "Vira duas cartas de cada vez e encontra os pares.", rules: "Menos jogadas e menos tempo dão mais pontos." },
+    embala: { nome: "Embala o bebé", ico: "🎵", desc: "Toca ao ritmo da canção de embalar até o bebé adormecer.",
+      how: "Toca em «Embalar» sempre que o anel aparece, ao ritmo da música (liga o som!).", rules: "No ritmo acalma, fora do ritmo acorda. Quanto mais depressa adormecer, mais pontos." },
+    fisga: { nome: "Fisga de chupetas", ico: "🎯", desc: "5 tiros para meter a chupeta no berço. Cuidado com o vento!",
+      how: "Puxa a chupeta para baixo e larga. O berço mexe-se e o vento empurra.", rules: "No berço +14 · Ao centro +20" },
+  };
+  const GAME_KEYS = Object.keys(GAMES);
+  const topItem = (t) => h("li", {},
+    h("span", { class: "team", style: `background: var(--${t.equipa === "menino" ? "boy" : "girl"})` }),
+    h("span", { text: t.nome }), h("span", { class: "pts", text: String(t.pontos) }));
+  function renderGames() {
+    const tops = (data.jogo && data.jogo.tops) || {}, rec = (me && meInfo && meInfo.recordes) || {};
+    $("#gamesGrid").replaceChildren(...GAME_KEYS.map((k) => {
+      const g = GAMES[k], top = (tops[k] || []).slice(0, 3);
+      return h("article", { class: "game-card" },
+        h("div", { class: "gico", "aria-hidden": "true", text: g.ico }),
+        h("h3", { text: g.nome }), h("p", { text: g.desc }),
+        top.length ? h("ol", { class: "top5" }, top.map(topItem)) : h("p", { class: "who", text: "Ainda ninguém jogou." }),
+        h("div", { class: "row", style: "margin-top: auto" },
+          h("button", { class: "btn-primary", type: "button", onclick: () => openGame(k) }, "Jogar"),
+          rec[k] != null ? h("span", { class: "who", text: `O teu melhor: ${rec[k]}` }) : null));
+    }));
   }
+  let festaTopI = 0;
+  function renderFestaTop() {
+    const tops = (data.jogo && data.jogo.tops) || {};
+    const played = GAME_KEYS.filter((k) => (tops[k] || []).length);
+    const k = played.length ? played[festaTopI % played.length] : null;
+    $("#fTopLabel").textContent = k ? `Top 5 · ${GAMES[k].nome}` : "Jogos";
+    $("#fTop5").replaceChildren(...(k ? tops[k].map(topItem) : [h("li", { class: "who", text: "Ainda ninguém jogou. Joguem no telemóvel!" })]));
+  }
+  function renderTop() { renderGames(); renderFestaTop(); }
 
   // ---------- reações ao vivo ----------
   const REACT = { azul: "💙", rosa: "💗", bebe: "👶", festa: "🎉" };
@@ -1222,11 +1311,13 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   }
 
   // ---------- jogo: apanha as chupetas ----------
-  const G = { running: false, team: null, name: null, token: null, raf: 0, cleanup: null };
-  function openGame() {
+  const G = { running: false, team: null, name: null, token: null, raf: 0, cleanup: null, jogo: "chupetas" };
+  function openGame(k) {
+    G.jogo = GAMES[k] ? k : "chupetas";
+    if (myVote === "menino" || myVote === "menina") G.team = myVote;   // por definição, a equipa do palpite
     document.body.classList.add("game-open");
     $("#game").hidden = false;
-    $("#gScore").textContent = "0 pts"; $("#gTime").textContent = "30s";
+    $("#gScore").textContent = ""; $("#gTime").textContent = "";
     const ctx = $("#gameCanvas").getContext("2d"); ctx.clearRect(0, 0, 99999, 99999);
     gameSetup();
   }
@@ -1235,6 +1326,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     if (G.cleanup) G.cleanup();
     document.body.classList.remove("game-open");
     $("#game").hidden = true;
+    $("#gStage").hidden = true; $("#gStage").replaceChildren();
     afterAction();
   }
   function gameSetup() {
@@ -1246,12 +1338,13 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     const pick = (k, cls) => h("button", { type: "button", class: cls, "aria-pressed": String(G.team === k), onclick: () => { G.team = k; gameSetup(); } }, "Equipa " + nm[k]);
     $("#gPanel").hidden = false;
     $("#gPanel").replaceChildren(
-      h("h2", { text: "Apanha as chupetas" }),
-      h("p", { class: "who", text: "Mexe o berço com o dedo (ou com as setas) e apanha o que cai. Tens 30 segundos!" }),
+      h("h2", { text: GAMES[G.jogo].nome }),
+      h("p", { class: "who", text: GAMES[G.jogo].how }),
       me ? h("p", { class: "who" }, "A jogar como ", h("strong", { text: me.nome }))
          : h("div", { class: "field", style: "text-align: left" }, h("label", { for: "gName", text: "O teu nome" }), name),
       h("div", { class: "field", style: "text-align: left" }, h("label", { text: "Jogas pela" }), h("div", { class: "team-pick" }, pick("menino", "b"), pick("menina", "g"))),
-      h("p", { class: "who", text: "Chupeta +1 · Estrela +3 · Fralda suja −2" }),
+      h("p", { class: "who", text: GAMES[G.jogo].rules }),
+      G.team && G.team === myVote ? h("p", { class: "who", text: "Por definição jogas pela equipa do teu palpite." }) : null,
       h("button", { class: "btn-primary", type: "button", onclick: startGame }, "Começar"));
   }
   async function startGame() {
@@ -1262,7 +1355,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     let r;
     try {
       if (!(await ensureMe(name))) return;
-      r = await call("startGame", G.team);
+      r = await call("startGame", G.team, G.jogo);
     } catch (_) { toast("Não foi possível começar. Verifica a ligação."); return; }
     if (!r.ok) {
       if (r.reason === "chave") { lostMe(); gameSetup(); return; }
@@ -1275,8 +1368,297 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       if ($("#game").hidden) return;
     }
     $("#gPanel").hidden = true;
-    runGame();
+    ({ chupetas: runGame, fralda: runFralda, memoria: runMemoria, embala: runEmbala, fisga: runFisga })[G.jogo]();
   }
+  // ---------- fim de qualquer jogo: guarda e mostra o resultado ----------
+  async function endGame(score) {
+    if ($("#game").hidden) return;
+    G.running = false; if (G.cleanup) G.cleanup();
+    $("#gStage").hidden = true; $("#gStage").replaceChildren();
+    const nm = NM(), jogo = G.jogo;
+    $("#gPanel").hidden = false;
+    $("#gPanel").replaceChildren(h("h2", { text: "Fim!" }), h("div", { class: "big", text: String(score) }), h("p", { class: "who", text: "A guardar a tua pontuação…" }));
+    let msg, shown = score;
+    try {
+      const r = await call("submitScore", G.token, score);
+      if (r.ok) {
+        shown = r.pontos != null ? r.pontos : score;
+        if (meInfo) { meInfo.recordes = meInfo.recordes || {}; meInfo.recordes[jogo] = Math.max(meInfo.recordes[jogo] || 0, r.best); }
+        msg = shown >= r.best ? `Novo recorde! A Equipa ${nm[G.team]} conta com os teus ${r.best} pontos neste jogo.`
+                              : `O teu melhor neste jogo continua a ser ${r.best} pontos. Só conta o melhor: tenta outra vez!`;
+        confetti([G.team === "menino" ? "--boy" : "--girl", "--accent"]);
+      } else msg = r.reason === "time" ? "Esta pontuação não pôde ser validada." : "Não foi possível guardar esta pontuação.";
+    } catch (_) { msg = "Não foi possível guardar. Verifica a ligação."; }
+    $("#gPanel").replaceChildren(h("h2", { text: "Fim!" }), h("div", { class: "big", text: String(shown) }), h("p", { class: "who", text: msg }),
+      h("div", { class: "row", style: "justify-content: center" },
+        h("button", { class: "btn-primary", type: "button", onclick: gameSetup }, "Jogar outra vez"),
+        h("button", { class: "btn-ghost", type: "button", onclick: closeGame }, "Sair")));
+    refresh();
+  }
+  function stage(...kids) { const s = $("#gStage"); s.replaceChildren(...kids); s.hidden = false; return s; }
+  function clearCanvas() { const cv = $("#gameCanvas"); cv.getContext("2d").clearRect(0, 0, cv.width, cv.height); }
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const clamp100 = (n) => Math.max(0, Math.min(100, Math.round(n)));
+
+  // ---------- jogo: muda a fralda ----------
+  function runFralda() {
+    clearCanvas();
+    const STEPS = [["suja", "💩", "Fralda suja fora"], ["toalhita", "🧻", "Toalhita"], ["creme", "🧴", "Creme"], ["nova", "🩲", "Fralda nova"], ["molas", "🧷", "Molas"]];
+    const ROUNDS = 3;
+    let round = 0, step = 0, penalty = 0, done = false;
+    const t0 = performance.now(), secs = () => (performance.now() - t0) / 1000 + penalty;
+    const bar = h("div", { class: "fr-steps" }, STEPS.map(() => h("span")));
+    const baby = h("div", { class: "fr-baby", text: "👶" }), hint = h("div", { class: "fr-next" }), grid = h("div", { class: "fr-cards" });
+    stage(bar, baby, hint, grid);
+    const timer = setInterval(() => { $("#gTime").textContent = secs().toFixed(1) + "s"; }, 100);
+    G.running = true; G.cleanup = () => { done = true; clearInterval(timer); G.cleanup = null; };
+    const deal = () => {
+      $("#gScore").textContent = `Ronda ${round + 1}/${ROUNDS}`;
+      [...bar.children].forEach((s, i) => s.classList.toggle("done", i < step));
+      hint.textContent = round === 0 ? `Agora: ${STEPS[step][2]}` : `Passo ${step + 1} de ${STEPS.length}`;
+      if (step === 0) grid.replaceChildren(...shuffle(STEPS.slice()).map(([k, e, t]) => card(k, e, t)));
+    };
+    const attempt = (k, el) => {
+      if (done) return;
+      if (k !== STEPS[step][0]) { penalty += 2; el.classList.remove("bad"); void el.offsetWidth; el.classList.add("bad"); hint.textContent = "Peça errada: +2 s"; return; }
+      el.classList.add("used"); baby.classList.remove("ok"); void baby.offsetWidth; baby.classList.add("ok");
+      step++;
+      if (step === STEPS.length) {
+        step = 0; round++;
+        if (round === ROUNDS) { done = true; clearInterval(timer); setTimeout(() => endGame(clamp100(120 - 4 * secs())), 300); return; }
+      }
+      deal();
+    };
+    const card = (k, e, t) => {
+      const el = h("div", { class: "fr-card", role: "button", tabindex: "0", "aria-label": t }, e, h("small", { text: t }));
+      let sx = 0, sy = 0, dragging = false;
+      const reset = () => { dragging = false; el.classList.remove("drag"); el.style.transform = ""; };
+      el.addEventListener("pointerdown", (ev) => { sx = ev.clientX; sy = ev.clientY; dragging = true; el.setPointerCapture(ev.pointerId); el.classList.add("drag"); });
+      el.addEventListener("pointermove", (ev) => { if (dragging) el.style.transform = `translate(${ev.clientX - sx}px, ${ev.clientY - sy}px)`; });
+      el.addEventListener("pointerup", (ev) => {
+        if (!dragging) return;
+        reset();
+        const r = baby.getBoundingClientRect();
+        const over = ev.clientX > r.left && ev.clientX < r.right && ev.clientY > r.top && ev.clientY < r.bottom;
+        if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 10 || over) attempt(k, el);
+      });
+      el.addEventListener("pointercancel", reset);
+      el.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); attempt(k, el); } });
+      return el;
+    };
+    deal();
+  }
+
+  // ---------- jogo: memória de bebé ----------
+  function runMemoria() {
+    clearCanvas();
+    const ICONS = ["🍼", "🧸", "🦆", "🧦", "🎀", "🐣", "🌙", "🧷"];
+    const deck = shuffle([...ICONS, ...ICONS]);
+    let open = [], moves = 0, found = 0, lock = false, done = false;
+    const t0 = performance.now(), secs = () => (performance.now() - t0) / 1000;
+    const btns = deck.map((_, i) => h("button", { type: "button", "aria-label": "Carta " + (i + 1), onclick: () => flip(i) }));
+    stage(h("div", { class: "mem" }, btns));
+    $("#gScore").textContent = "0 jogadas";
+    const timer = setInterval(() => { $("#gTime").textContent = Math.floor(secs()) + "s"; }, 250);
+    G.running = true; G.cleanup = () => { done = true; clearInterval(timer); G.cleanup = null; };
+    function flip(i) {
+      const b = btns[i];
+      if (lock || done || b.classList.contains("up") || b.classList.contains("done")) return;
+      b.classList.add("up"); b.textContent = deck[i]; open.push(i);
+      if (open.length < 2) return;
+      moves++; $("#gScore").textContent = `${moves} jogadas`;
+      const [a, c] = open; open = [];
+      if (deck[a] === deck[c]) {
+        btns[a].classList.replace("up", "done"); btns[c].classList.replace("up", "done"); found++;
+        if (found === ICONS.length) { done = true; clearInterval(timer); const s = clamp100(130 - 4 * (moves - ICONS.length) - secs()); setTimeout(() => endGame(s), 500); }
+      } else {
+        lock = true;
+        setTimeout(() => { [a, c].forEach((x) => { btns[x].classList.remove("up"); btns[x].textContent = ""; }); lock = false; }, 750);
+      }
+    }
+  }
+
+  // ---------- jogo: embala o bebé ----------
+  function runEmbala() {
+    clearCanvas();
+    const BEAT = 800, LIMIT = 45;
+    const MELODY = [262, 262, 392, 392, 440, 440, 392, 0, 349, 349, 330, 330, 294, 294, 262, 0]; // «Brilha, brilha, estrelinha»
+    const FACES = ["😭", "😢", "😟", "🙂", "😌", "😴"];
+    let calm = 0, beatN = 0, lastTap = 0, tapped = false, done = false, raf = 0;
+    const face = h("div", { class: "emb-face", text: FACES[0] }), ring = h("div", { class: "emb-ring" });
+    const meter = h("i"), fb = h("div", { class: "emb-fb", text: "Toca quando o anel aparecer" });
+    const btn = h("button", { class: "btn-primary emb-btn", type: "button" }, "Embalar");
+    stage(h("div", { class: "emb-wrap" }, ring, face), h("div", { class: "emb-meter" }, meter), fb, btn);
+    let ac = null;
+    try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) {}
+    const note = (f) => {
+      if (!ac || !f) return;
+      try {
+        const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime;
+        o.type = "sine"; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.09, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+        o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 0.75);
+      } catch (_) {}
+    };
+    const t0 = performance.now(), secs = () => (performance.now() - t0) / 1000;
+    const show = () => { meter.style.width = calm + "%"; face.textContent = FACES[Math.min(5, Math.floor(calm / 20))]; $("#gScore").textContent = Math.round(calm) + "% calmo"; };
+    const first = performance.now() + 500;
+    let next = first;
+    const beat = () => {
+      if (beatN > 0 && !tapped && calm > 0) { calm = Math.max(0, calm - 2); show(); }
+      tapped = false;
+      note(MELODY[beatN % MELODY.length]); beatN++;
+      ring.classList.remove("go"); void ring.offsetWidth; ring.classList.add("go");
+      face.classList.remove("bob"); void face.offsetWidth; face.classList.add("bob");
+    };
+    const finish = (slept) => {
+      done = true; cancelAnimationFrame(raf);
+      if (slept) { face.textContent = "😴"; fb.textContent = "Adormeceu!"; fb.className = "emb-fb good"; }
+      const s = slept ? clamp100(130 - 3 * secs()) : Math.floor(calm / 4);
+      setTimeout(() => endGame(s), slept ? 900 : 300);
+    };
+    const loop = (now) => {
+      if (done) return;
+      if (now >= next) { beat(); next += BEAT; }
+      const t = secs();
+      $("#gTime").textContent = Math.max(0, Math.ceil(LIMIT - t)) + "s";
+      if (t >= LIMIT) { finish(false); return; }
+      raf = requestAnimationFrame(loop);
+    };
+    const tap = (e) => {
+      e.preventDefault();
+      if (done) return;
+      if (ac && ac.state === "suspended") ac.resume();
+      const now = performance.now();
+      if (now - lastTap < 150) return;
+      lastTap = now;
+      const d = (((now - first) % BEAT) + BEAT) % BEAT, off = Math.min(d, BEAT - d);
+      if (off <= 130) { calm += 10; fb.textContent = "Perfeito!"; fb.className = "emb-fb good"; }
+      else if (off <= 250) { calm += 6; fb.textContent = "Bom"; fb.className = "emb-fb good"; }
+      else { calm -= 6; fb.textContent = "Fora do ritmo"; fb.className = "emb-fb bad"; }
+      tapped = true; calm = Math.max(0, Math.min(100, calm)); show();
+      if (calm >= 100) finish(true);
+    };
+    btn.addEventListener("pointerdown", tap);
+    btn.addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") tap(e); });
+    G.running = true;
+    G.cleanup = () => { done = true; cancelAnimationFrame(raf); try { if (ac) ac.close(); } catch (_) {} G.cleanup = null; };
+    show(); btn.focus(); raf = requestAnimationFrame(loop);
+  }
+
+  // ---------- jogo: fisga de chupetas ----------
+  function runFisga() {
+    const cv = $("#gameCanvas"), ctx = cv.getContext("2d");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const W = () => innerWidth, H = () => innerHeight;
+    const resize = () => { cv.width = W() * dpr; cv.height = H() * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+    resize();
+    const cs = getComputedStyle(document.documentElement);
+    const col = { accent: cs.getPropertyValue("--accent").trim(), ink: cs.getPropertyValue("--ink").trim() };
+    const teamCol = cs.getPropertyValue(G.team === "menino" ? "--boy" : "--girl").trim();
+    const SHOTS = 5;
+    let shot = 0, score = 0, wind = 0, proj = null, aim = null, msg = null, t = 0, last = performance.now(), done = false, raf = 0;
+    const sling = () => ({ x: W() / 2, y: H() * 0.78 });
+    const maxPull = () => Math.min(170, H() * 0.2);
+    const crib = () => {
+      const w = Math.min(170, W() * 0.36), amp = (W() - w) / 2 - 12;
+      return { w, h: 46, x: W() / 2 + Math.sin(t * (0.8 + shot * 0.25)) * amp - w / 2, y: H() * 0.17 };
+    };
+    const newWind = () => { wind = Math.round((Math.random() * 2 - 1) * 10) / 10; };
+    newWind();
+    const paci = (x, y, rot) => {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+      ctx.strokeStyle = col.accent; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 15, 9, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = col.accent; ctx.beginPath(); ctx.ellipse(0, 0, 19, 12, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    };
+    const draw = (c) => {
+      ctx.clearRect(0, 0, W(), H());
+      ctx.fillStyle = teamCol; ctx.globalAlpha = 0.18; ctx.fillRect(c.x, c.y, c.w, c.h); ctx.globalAlpha = 1;
+      ctx.strokeStyle = teamCol; ctx.lineWidth = 4; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(c.x, c.y - 6); ctx.lineTo(c.x, c.y + c.h); ctx.lineTo(c.x + c.w, c.y + c.h); ctx.lineTo(c.x + c.w, c.y - 6); ctx.stroke();
+      ctx.lineWidth = 2;
+      for (let i = 1; i < 6; i++) { const bx = c.x + (c.w * i) / 6; ctx.beginPath(); ctx.moveTo(bx, c.y + 4); ctx.lineTo(bx, c.y + c.h); ctx.stroke(); }
+      ctx.fillStyle = col.accent; ctx.fillRect(c.x + c.w / 2 - c.w * 0.18, c.y + c.h - 5, c.w * 0.36, 5);
+      const s = sling();
+      ctx.strokeStyle = "#8a6a46"; ctx.lineWidth = 9;
+      ctx.beginPath(); ctx.moveTo(s.x, s.y + 110); ctx.lineTo(s.x, s.y + 34); ctx.lineTo(s.x - 36, s.y - 6);
+      ctx.moveTo(s.x, s.y + 34); ctx.lineTo(s.x + 36, s.y - 6); ctx.stroke();
+      if (!proj && shot < SHOTS) {
+        const px = s.x + (aim ? aim.x : 0), py = s.y + (aim ? aim.y : 0);
+        ctx.strokeStyle = col.ink; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(s.x - 36, s.y - 6); ctx.lineTo(px, py); ctx.lineTo(s.x + 36, s.y - 6); ctx.stroke();
+        paci(px, py, 0);
+      }
+      if (proj) paci(proj.x, proj.y, proj.rot);
+      ctx.fillStyle = col.ink; ctx.textAlign = "center";
+      ctx.font = "600 17px Figtree, system-ui, sans-serif";
+      ctx.fillText(wind === 0 ? "Sem vento" : `Vento ${wind > 0 ? "→" : "←"} ${Math.round(Math.abs(wind) * 10)}`, W() / 2, Math.min(H() - 14, s.y + 140));
+      if (shot === 0 && !proj && !aim && !msg) ctx.fillText("Puxa a chupeta para baixo e larga", W() / 2, H() * 0.55);
+      if (msg) {
+        ctx.globalAlpha = Math.max(0, 1 - msg.t); ctx.fillStyle = msg.good ? col.accent : col.ink;
+        ctx.font = "bold 30px Figtree, system-ui, sans-serif"; ctx.fillText(msg.txt, W() / 2, H() * 0.47); ctx.globalAlpha = 1;
+      }
+    };
+    const endShot = () => {
+      proj = null; shot++;
+      if (shot >= SHOTS) { done = true; cancelAnimationFrame(raf); draw(crib()); setTimeout(() => endGame(Math.min(100, score)), 1000); }
+      else newWind();
+    };
+    const frame = (now) => {
+      if (done) return;
+      const dt = Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+      if (msg) { msg.t += dt; if (msg.t > 1.2) msg = null; }
+      const c = crib();
+      if (proj) {
+        const prevY = proj.y;
+        proj.vx += wind * H() * 0.25 * dt; proj.vy += H() * 1.4 * dt;
+        proj.x += proj.vx * dt; proj.y += proj.vy * dt; proj.rot += dt * 6;
+        if (proj.vy > 0 && prevY < c.y && proj.y >= c.y && proj.x > c.x && proj.x < c.x + c.w) {
+          const center = Math.abs(proj.x - (c.x + c.w / 2)) < c.w * 0.18, pts = center ? 20 : 14;
+          score += pts; msg = { txt: (center ? "Ao centro! +" : "No berço! +") + pts, t: 0, good: true }; endShot();
+        } else if (proj.y > H() + 60 || proj.x < -80 || proj.x > W() + 80) {
+          msg = { txt: "Falhou!", t: 0, good: false }; endShot();
+        }
+      }
+      if (!done) draw(c);
+      $("#gScore").textContent = score + " pts";
+      $("#gTime").textContent = `Tiro ${Math.min(shot + 1, SHOTS)}/${SHOTS}`;
+      if (!done) raf = requestAnimationFrame(frame);
+    };
+    const onDown = (e) => {
+      if (proj || done || shot >= SHOTS) return;
+      const s = sling();
+      if (Math.hypot(e.clientX - s.x, e.clientY - s.y) < 110) { aim = { x: 0, y: 0 }; cv.setPointerCapture(e.pointerId); }
+    };
+    const onMove = (e) => {
+      if (!aim) return;
+      const s = sling(), m = maxPull();
+      let dx = e.clientX - s.x, dy = e.clientY - s.y; const d = Math.hypot(dx, dy);
+      if (d > m) { dx *= m / d; dy *= m / d; }
+      aim = { x: dx, y: dy };
+    };
+    const onUp = () => {
+      if (!aim) return;
+      const m = maxPull(), f = Math.hypot(aim.x, aim.y) / m, s = sling(), v = H() * 1.9;
+      if (f > 0.15) proj = { x: s.x + aim.x, y: s.y + aim.y, vx: (-aim.x / m) * v, vy: (-aim.y / m) * v, rot: 0 };
+      aim = null;
+    };
+    cv.addEventListener("pointerdown", onDown); cv.addEventListener("pointermove", onMove);
+    cv.addEventListener("pointerup", onUp); cv.addEventListener("pointercancel", onUp);
+    window.addEventListener("resize", resize);
+    G.running = true;
+    G.cleanup = () => {
+      done = true; cancelAnimationFrame(raf);
+      cv.removeEventListener("pointerdown", onDown); cv.removeEventListener("pointermove", onMove);
+      cv.removeEventListener("pointerup", onUp); cv.removeEventListener("pointercancel", onUp);
+      window.removeEventListener("resize", resize);
+      G.cleanup = null;
+    };
+    raf = requestAnimationFrame(frame);
+  }
+
   function runGame() {
     const cv = $("#gameCanvas"), ctx = cv.getContext("2d");
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -1324,26 +1706,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       ctx.strokeStyle = "rgba(255,255,255,.75)"; ctx.lineWidth = 3;
       for (let i = 1; i < 6; i++) { const bx = x + basket.w * i / 6; ctx.beginPath(); ctx.moveTo(bx, y + 7); ctx.lineTo(bx, y + basket.h - 7); ctx.stroke(); }
     };
-    const finish = async () => {
-      G.running = false; if (G.cleanup) G.cleanup();
-      const nm = NM();
-      $("#gPanel").hidden = false;
-      $("#gPanel").replaceChildren(h("h2", { text: "Fim!" }), h("div", { class: "big", text: String(score) }), h("p", { class: "who", text: "A guardar a tua pontuação…" }));
-      let msg;
-      try {
-        const r = await call("submitScore", G.token, score);
-        if (r.ok) {
-          if (meInfo) meInfo.recorde = Math.max(meInfo.recorde || 0, r.best);
-          msg = score >= r.best ? `Novo recorde! A Equipa ${nm[G.team]} conta com os teus ${r.best} pontos.` : `O teu recorde continua a ser ${r.best} pontos. Tenta outra vez!`;
-          confetti([G.team === "menino" ? "--boy" : "--girl", "--accent"]);
-        } else msg = "Não foi possível guardar esta pontuação.";
-      } catch (_) { msg = "Não foi possível guardar. Verifica a ligação."; }
-      $("#gPanel").replaceChildren(h("h2", { text: "Fim!" }), h("div", { class: "big", text: String(score) }), h("p", { class: "who", text: msg }),
-        h("div", { class: "row", style: "justify-content: center" },
-          h("button", { class: "btn-primary", type: "button", onclick: gameSetup }, "Jogar outra vez"),
-          h("button", { class: "btn-ghost", type: "button", onclick: closeGame }, "Sair")));
-      refresh();
-    };
+    const finish = () => { G.running = false; if (G.cleanup) G.cleanup(); endGame(score); };
     const frame = (now) => {
       if (!G.running) return;
       const dt = Math.min(.05, (now - last) / 1000); last = now;
@@ -1437,6 +1800,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     clearInterval(festaRefresh); festaRefresh = setInterval(refresh, 8000); // a corda mexe-se quase ao vivo
     clearInterval(festaTimer);
     festaTimer = setInterval(() => {
+      festaTopI++; renderFestaTop();
       festaMsgI++; const el = $("#fMsg"); el.style.opacity = 0;
       setTimeout(() => { showFestaMsg(); el.style.opacity = 1; }, 500);
     }, 8000);
@@ -1612,7 +1976,6 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   $("#resBtn").addEventListener("click", openReservas);
   $("#meModal").addEventListener("click", (e) => { if (e.target.id === "meModal") closeMe(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#meModal").hidden) closeMe(); });
-  $("#playBtn").addEventListener("click", openGame);
   $("#gameClose").addEventListener("click", closeGame);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#game").hidden) closeGame(); });
   $("#festaClose").addEventListener("click", closeFesta);
