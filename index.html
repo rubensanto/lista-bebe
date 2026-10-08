@@ -147,18 +147,82 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .choice.menina { background: var(--girl-soft); color: var(--girl); border-color: var(--girl); }
 .choice svg { display: block; margin: 0 auto 6px; }
 #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 40; width: 100%; height: 100%; }
+/* nomes no fundo */
+.bg-names { position: fixed; inset: 0; display: grid; grid-template-columns: 1fr 1fr; pointer-events: none; z-index: 0; overflow: hidden; }
+.bg-names span { align-self: center; justify-self: center; font-family: var(--f-display); font-size: clamp(56px, 13vw, 190px); line-height: 1; opacity: .12; white-space: nowrap; transition: opacity .6s ease; }
+.bg-names .b { color: var(--boy); transform: rotate(-8deg); }
+.bg-names .g { color: var(--girl); transform: rotate(8deg); }
+.bg-names span.off { opacity: 0; }
+.wrap { position: relative; z-index: 1; }
+/* bebé */
+.hero-top { display: flex; align-items: center; gap: 16px; }
+.hero-top > div { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.baby { width: 92px; height: 92px; flex: none; overflow: visible; }
+.baby .eyes { transform-origin: 60px 70px; animation: blink 5s infinite; }
+.baby .hand { transform-origin: 100px 100px; animation: wave 2.4s ease-in-out infinite; }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+@keyframes wave { 0%, 60%, 100% { transform: rotate(0); } 15%, 45% { transform: rotate(-22deg); } 30% { transform: rotate(14deg); } }
+/* contagem decrescente */
+.countdown { align-self: flex-start; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow); max-width: 100%; }
+.cd-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+.cd-grid div { display: flex; flex-direction: column; align-items: center; min-width: 56px; }
+.cd-grid b { font-family: var(--f-display); font-weight: 400; font-size: clamp(28px, 6vw, 40px); line-height: 1; color: var(--accent); font-variant-numeric: tabular-nums; }
+.cd-grid span { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.cd-sub { font-size: 14px; color: var(--muted); }
+.cd-today { font-family: var(--f-display); font-size: clamp(24px, 5vw, 34px); color: var(--accent); }
+/* partilhar */
+.share a.btn-primary { text-decoration: none; display: inline-flex; align-items: center; border-radius: 999px; padding: 8px 16px; font-weight: 600; }
+/* modo festa (TV) */
+.festa { position: fixed; inset: 0; z-index: 50; overflow: auto; background: var(--paper) linear-gradient(90deg, var(--bg-boy) 0 50%, var(--bg-girl) 50% 100%); padding: 3vw 4vw; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; gap: 3vw; }
+.festa-close { position: absolute; top: 12px; right: 16px; background: var(--card); color: var(--ink); border: 1px solid var(--line); font-size: 22px; width: 44px; height: 44px; padding: 0; }
+.festa-head { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2vw; padding-right: 48px; }
+.festa-head h1 { font-size: clamp(36px, 5.5vw, 96px); }
+.festa .countdown { align-self: center; }
+.festa-card { background: var(--card); border-radius: 28px; padding: 2.5vw; display: flex; flex-direction: column; gap: 1.5vw; justify-content: center; min-width: 0; }
+.festa-pie { display: flex; align-items: center; gap: 3vw; flex-wrap: wrap; }
+.festa-pie svg { width: clamp(160px, 22vw, 380px); height: auto; }
+.festa-legend { display: flex; flex-direction: column; gap: 1vw; font-size: clamp(18px, 2.2vw, 36px); }
+.festa-legend strong { font-family: var(--f-display); font-weight: 400; }
+.festa-stat { display: flex; flex-wrap: wrap; gap: 2vw; font-size: clamp(16px, 1.8vw, 28px); color: var(--muted); }
+.festa-stat b { font-family: var(--f-display); font-weight: 400; font-size: clamp(32px, 4vw, 72px); color: var(--accent); margin-right: 8px; }
+.festa-msg { margin: 0; font-family: var(--f-display); font-size: clamp(22px, 2.8vw, 48px); line-height: 1.25; transition: opacity .5s ease; overflow-wrap: anywhere; }
+.festa-by { font-size: clamp(16px, 1.6vw, 26px); color: var(--muted); }
+@media (max-width: 800px) { .festa { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .baby .eyes, .baby .hand { animation: none; } }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .bar i, .choice { transition: none; } }
 @media (max-width: 480px) { .wrap { padding-inline: 16px; padding-block: 28px 56px; } }
 </style>
 </head>
 <body>
+<div class="bg-names" aria-hidden="true"><span class="b" id="bgBoy"></span><span class="g" id="bgGirl"></span></div>
 <main class="wrap">
   <header class="hero">
-    <p class="eyebrow" id="occasion">Chá de bebé</p>
-    <h1 id="listTitle">Lista de Presentes do Bebé</h1>
+    <div class="hero-top">
+      <svg class="baby" id="baby" viewBox="0 0 120 120" role="img" aria-label="Bebé a acenar">
+        <g class="hand"><circle cx="104" cy="94" r="9" fill="#f5cfb8" stroke="#e3b49a" stroke-width="1.5"/></g>
+        <circle cx="60" cy="68" r="34" fill="#f5cfb8"/>
+        <path id="bonnetL" d="M24 66 A36 36 0 0 1 60 30 L60 58 Q40 56 24 66 Z" fill="var(--boy)"/>
+        <path id="bonnetR" d="M60 30 A36 36 0 0 1 96 66 Q80 56 60 58 Z" fill="var(--girl)"/>
+        <circle cx="60" cy="27" r="6" fill="var(--accent)"/>
+        <circle cx="42" cy="80" r="6" fill="#f29bb0" opacity=".55"/>
+        <circle cx="78" cy="80" r="6" fill="#f29bb0" opacity=".55"/>
+        <g class="eyes" fill="#2a2540"><ellipse cx="48" cy="70" rx="3.2" ry="4"/><ellipse cx="72" cy="70" rx="3.2" ry="4"/></g>
+        <path d="M51 85 Q60 93 69 85" fill="none" stroke="#2a2540" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <p class="eyebrow" id="occasion">Chá de bebé</p>
+        <h1 id="listTitle">Lista de Presentes do Bebé</h1>
+      </div>
+    </div>
     <p class="note" id="listNote"></p>
+    <div class="countdown" id="countdown" hidden></div>
     <div class="chips" id="chips"></div>
+    <div class="row share">
+      <a class="btn-primary" id="shareWa" href="https://wa.me/" target="_blank" rel="noopener noreferrer">Partilhar no WhatsApp</a>
+      <button class="btn-ghost" type="button" id="copyLink">Copiar link</button>
+      <button class="btn-ghost" type="button" id="openFesta">Modo festa (TV)</button>
+    </div>
   </header>
 
   <div class="reveal" id="reveal" hidden></div>
@@ -244,16 +308,33 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     <div class="choices">
       <button class="choice menino" type="button" data-vote="menino">
         <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="17" cy="23" r="10" fill="none" stroke="currentColor" stroke-width="3"/><path d="M24 16 L34 6 M26 6 H34 V14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Menino
+        <span class="choice-name" data-k="menino">Menino</span>
       </button>
       <button class="choice menina" type="button" data-vote="menina">
         <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="15" r="10" fill="none" stroke="currentColor" stroke-width="3"/><path d="M20 25 V37 M14 31 H26" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
-        Menina
+        <span class="choice-name" data-k="menina">Menina</span>
       </button>
     </div>
     <button class="btn-text" type="button" id="skipGuess">Prefiro não arriscar</button>
   </div>
 </div>
+<section class="festa" id="festa" hidden aria-label="Modo festa">
+  <button class="festa-close" type="button" id="festaClose" aria-label="Sair do modo festa">×</button>
+  <div class="festa-head">
+    <div><p class="eyebrow" id="fOccasion"></p><h1 id="fTitle"></h1></div>
+    <div class="countdown" id="fCountdown" hidden></div>
+  </div>
+  <div class="festa-card">
+    <span class="label" id="fPieLabel"></span>
+    <div class="festa-pie"><svg id="fPie" viewBox="0 0 120 120" role="img" aria-label="Palpites"></svg><div class="festa-legend" id="fLegend"></div></div>
+    <div class="festa-stat" id="fStats"></div>
+  </div>
+  <div class="festa-card">
+    <span class="label">Mensagens para o bebé</span>
+    <p class="festa-msg" id="fMsg"></p>
+    <span class="festa-by" id="fMsgBy"></span>
+  </div>
+</section>
 <canvas id="confetti" hidden></canvas>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -277,6 +358,9 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     LS.set("token", token);
   }
   const busy = new Set();
+  const NM = () => ({ menino: data.config.nomeMenino || "Menino", menina: data.config.nomeMenina || "Menina" });
+  const hasNames = () => !!(data.config.nomeMenino && data.config.nomeMenina);
+  const pageUrl = () => location.href.split("#")[0].split("?")[0];
 
   // ---------- ligação ao Supabase ----------
   // A chave pública (anon/publishable) foi feita para estar visível: só dá acesso às funções do site.
@@ -375,6 +459,20 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     $("#listTitle").textContent = c.titulo || "Lista de Presentes do Bebé";
     $("#listNote").textContent = c.mensagem || "";
     if (c.titulo) document.title = c.titulo;
+    const nm = NM();
+    $("#bgBoy").textContent = hasNames() ? nm.menino : "";
+    $("#bgGirl").textContent = hasNames() ? nm.menina : "";
+    $("#bgBoy").classList.toggle("off", c.revelacao === "menina");
+    $("#bgGirl").classList.toggle("off", c.revelacao === "menino");
+    $("#bonnetL").setAttribute("fill", c.revelacao === "menina" ? "var(--girl)" : "var(--boy)");
+    $("#bonnetR").setAttribute("fill", c.revelacao === "menino" ? "var(--boy)" : "var(--girl)");
+    $("#guessTitle").textContent = hasNames() ? `${nm.menina} ou ${nm.menino}?` : "Menino ou menina?";
+    document.querySelectorAll(".choice-name").forEach((s) => (s.textContent = nm[s.dataset.k]));
+    const shareText = hasNames()
+      ? `Olá! Esta é a lista de presentes da ${nm.menina} ou do ${nm.menino}. Escolhe uma prenda e deixa o teu palpite: `
+      : "Olá! Esta é a lista de presentes do bebé. Escolhe uma prenda e deixa o teu palpite: ";
+    $("#shareWa").href = "https://wa.me/?text=" + encodeURIComponent(shareText + pageUrl());
+    tick();
 
     const chips = [];
     if (c.dataPrevista) {
@@ -394,13 +492,43 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     if (c.revelacao) {
       rv.hidden = false;
       rv.className = "reveal " + c.revelacao;
-      rv.textContent = c.revelacao === "menino" ? "É um menino!" : "É uma menina!";
+      rv.textContent = hasNames()
+        ? (c.revelacao === "menino" ? `É o ${nm.menino}!` : `É a ${nm.menina}!`)
+        : (c.revelacao === "menino" ? "É um menino!" : "É uma menina!");
     } else rv.hidden = true;
     $("#msgCodeField").hidden = !c.precisaCodigo;
     $("#addCodeField").hidden = !c.precisaCodigo;
     if (c.precisaCodigo && !$("#msgCode").value) $("#msgCode").value = codeDraft;
     if (c.precisaCodigo && !$("#addCode").value) $("#addCode").value = codeDraft;
   }
+
+  // ---------- contagem decrescente ----------
+  const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+  function grandeDia() {
+    const c = data.config;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(c.dataGrandeDia || "")) return null;
+    const [y, m, d] = c.dataGrandeDia.split("-").map(Number);
+    const [hh, mm] = /^\d{1,2}:\d{2}$/.test(c.horaGrandeDia || "") ? c.horaGrandeDia.split(":").map(Number) : [0, 0];
+    return new Date(y, m - 1, d, hh, mm);
+  }
+  function renderCountdown(box) {
+    const t = grandeDia();
+    if (!t) { box.hidden = true; return; }
+    box.hidden = false;
+    const ms = t - new Date();
+    const quando = `${t.getDate()} de ${MESES[t.getMonth()]}`;
+    if (ms <= 0) {
+      box.replaceChildren(h("div", { class: "cd-today", text: ms > -86400000 ? "Chegou o grande dia!" : "Obrigado a todos!" }), h("div", { class: "cd-sub", text: quando }));
+      return;
+    }
+    const s = Math.floor(ms / 1000), days = Math.floor(s / 86400);
+    const parts = [[days, days === 1 ? "dia" : "dias"], [Math.floor(s / 3600) % 24, "horas"], [Math.floor(s / 60) % 60, "min"], [s % 60, "seg"]];
+    box.replaceChildren(
+      h("div", { class: "cd-sub", text: "Faltam" }),
+      h("div", { class: "cd-grid" }, parts.map(([n, l]) => h("div", {}, h("b", { text: String(n).padStart(2, "0") }), h("span", { text: l })))),
+      h("div", { class: "cd-sub", text: `${data.config.grandeDiaTexto || "para o grande dia"} · ${quando}` }));
+  }
+  function tick() { renderCountdown($("#countdown")); if (!$("#festa").hidden) renderCountdown($("#fCountdown")); }
 
   function arcPath(cx, cy, r, a0, a1) {
     const x0 = cx + r * Math.sin(a0), y0 = cy - r * Math.cos(a0);
@@ -445,14 +573,14 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       nomes[key].length ? h("div", { class: "names" }, nomes[key].map((x) => h("span", { text: x }))) : null,
     ];
     $("#legend").replaceChildren(...[
-      ...line("menino", "Menino", b), ...line("menina", "Menina", g),
+      ...line("menino", NM().menino, b), ...line("menina", NM().menina, g),
       total ? null : h("span", { class: "who", text: "Ainda ninguém deu o seu palpite." })].filter(Boolean));
-    $("#pieLabel").textContent = rev ? "Quem acertou?" : "Menino ou menina?";
+    $("#pieLabel").textContent = rev ? "Quem acertou?" : (hasNames() ? `${NM().menina} ou ${NM().menino}?` : "Menino ou menina?");
 
     const mg = $("#myGuess");
     if (myVote === "menino" || myVote === "menina") {
       mg.replaceChildren(
-        h("span", {}, "O teu palpite: ", h("strong", { text: myVote === "menino" ? "Menino" : "Menina" })),
+        h("span", {}, "O teu palpite: ", h("strong", { text: NM()[myVote] })),
         rev ? h("span", { text: rev === myVote ? " · Acertaste!" : " · Fica para a próxima!" })
             : h("button", { class: "btn-text", type: "button", onclick: openModal }, "mudar"));
     } else if (!rev) {
@@ -549,7 +677,53 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     }) : [h("li", {}, h("p", { class: "who", text: "Ainda não há mensagens. Sê a primeira pessoa a escrever!" }))]));
   }
 
-  function render() { renderHeader(); renderPie(); renderGifts(); renderMessages(); }
+  // ---------- modo festa (para TV) ----------
+  let festaMsgI = 0, festaTimer = null;
+  function showFestaMsg() {
+    const list = data.mensagens;
+    const m = list.length ? list[festaMsgI % list.length] : null;
+    $("#fMsg").textContent = m ? `“${m.texto}”` : "Deixem uma mensagem para o bebé no site!";
+    $("#fMsgBy").textContent = m ? "— " + m.nome : "";
+  }
+  function renderFesta() {
+    if ($("#festa").hidden) return;
+    const c = data.config, nm = NM();
+    $("#fOccasion").textContent = c.ocasiao || "Chá de bebé";
+    $("#fTitle").textContent = hasNames() ? `${nm.menina} ou ${nm.menino}?` : (c.titulo || "Lista de Presentes do Bebé");
+    $("#fPie").innerHTML = $("#pie").innerHTML;
+    $("#fPieLabel").textContent = $("#pieLabel").textContent;
+    const { menino: b, menina: g } = data.palpites, total = b + g;
+    const pct = (n) => (total ? Math.round((n / total) * 100) : 0) + "%";
+    const dot = (k) => h("span", { class: "dot", style: `background: var(--${k}); display: inline-block; margin-right: 10px` });
+    $("#fLegend").replaceChildren(
+      h("div", {}, dot("boy"), h("strong", { text: nm.menino }), " " + pct(b)),
+      h("div", {}, dot("girl"), h("strong", { text: nm.menina }), " " + pct(g)));
+    const singles = data.gifts.filter((x) => !x.multi), taken = singles.filter((x) => x.count > 0).length;
+    const ofertas = data.gifts.filter((x) => x.multi).reduce((a, x) => a + x.count, 0);
+    $("#fStats").replaceChildren(
+      h("div", {}, h("b", { text: `${taken}/${singles.length}` }), "prendas reservadas"),
+      h("div", {}, h("b", { text: String(ofertas) }), ofertas === 1 ? "oferta de vários" : "ofertas de vários"));
+    showFestaMsg();
+  }
+  function openFesta() {
+    $("#festa").hidden = false; document.body.style.overflow = "hidden";
+    if (location.hash !== "#festa") history.replaceState(null, "", "#festa");
+    try { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p) p.catch(() => {}); } catch (_) {}
+    renderFesta(); tick();
+    clearInterval(festaTimer);
+    festaTimer = setInterval(() => {
+      festaMsgI++; const el = $("#fMsg"); el.style.opacity = 0;
+      setTimeout(() => { showFestaMsg(); el.style.opacity = 1; }, 500);
+    }, 8000);
+  }
+  function closeFesta() {
+    $("#festa").hidden = true; document.body.style.overflow = "";
+    clearInterval(festaTimer);
+    if (location.hash === "#festa") history.replaceState(null, "", location.pathname + location.search);
+    try { if (document.fullscreenElement) document.exitFullscreen(); } catch (_) {}
+  }
+
+  function render() { renderHeader(); renderPie(); renderGifts(); renderMessages(); renderFesta(); }
 
   // ---------- ações ----------
   async function reserve(id) {
@@ -658,9 +832,19 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     finally { btn.disabled = false; btn.textContent = "Acrescentar à lista"; refresh(); }
   });
 
+  $("#openFesta").addEventListener("click", openFesta);
+  $("#festaClose").addEventListener("click", closeFesta);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#festa").hidden) closeFesta(); });
+  $("#copyLink").addEventListener("click", async () => {
+    const url = pageUrl();
+    try { await navigator.clipboard.writeText(url); toast("Link copiado!"); }
+    catch (_) { toast("Copia este link: " + url); }
+  });
+
   // ---------- arranque ----------
   render();
-  refresh().then(() => { if (!myVote && !data.config.revelacao) openModal(); });
+  refresh().then(() => { if (location.hash === "#festa") openFesta(); else if (!myVote && !data.config.revelacao) openModal(); });
+  setInterval(tick, 1000);
   setInterval(() => { if (!openClaim && !document.hidden) refresh(); }, 30000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden && !openClaim) refresh(); });
 })();
