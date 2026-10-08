@@ -93,6 +93,8 @@ section.block { display: flex; flex-direction: column; gap: 16px; }
 .price { font-family: var(--f-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .tag h3 { font-size: 21px; line-height: 1.2; overflow-wrap: anywhere; }
 .desc { margin: 0; color: var(--muted); overflow-wrap: anywhere; white-space: pre-line; }
+.brand { margin: -6px 0 0; font-size: 12.5px; color: var(--muted); opacity: .85; }
+.brand b { font-weight: 600; }
 .shop { color: var(--ink); font-weight: 600; text-underline-offset: 3px; align-self: flex-start; }
 .actions { margin-top: auto; padding-top: 6px; display: flex; flex-direction: column; gap: 10px; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -1118,6 +1120,8 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     li.append(
       h("div", { class: "tag-head" }, h("span", { class: "pill", text: pillText }), price ? h("span", { class: "price", text: price }) : null),
       h("h3", { text: g.name }));
+    // marca preferida: só uma sugestão, em letra pequena
+    if (g.brand) li.append(h("p", { class: "brand" }, "De preferência ", h("b", { text: g.brand }), " · pode ser outra marca"));
     if (g.desc) li.append(h("p", { class: "desc", text: g.desc }));
     if (/^https?:\/\//i.test(g.link)) li.append(h("a", { class: "shop", href: g.link, target: "_blank", rel: "noopener noreferrer", text: "Ver na loja ↗" }));
 
