@@ -98,8 +98,14 @@ section.block { display: flex; flex-direction: column; gap: 16px; }
 .photo-send { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
 .photo-send .field { min-width: 220px; }
 .photo-btn { font-size: 15px; padding: 10px 18px; }
-.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
-.photo-grid figure { margin: 0; position: relative; border-radius: 14px; overflow: hidden; aspect-ratio: 1; background: var(--line); }
+/* fila de fotos que desliza para os lados */
+.photo-strip { position: relative; }
+.photo-grid { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; padding-bottom: 6px; scrollbar-width: thin; overscroll-behavior-x: contain; }
+.photo-grid figure { flex: 0 0 auto; width: clamp(120px, 30vw, 170px); scroll-snap-align: start; margin: 0; position: relative; border-radius: 14px; overflow: hidden; aspect-ratio: 1; background: var(--line); }
+.strip-btn { position: absolute; top: calc(50% - 3px); transform: translateY(-50%); z-index: 2; width: 38px; height: 38px; padding: 0; border-radius: 50%; background: var(--card); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow); font-size: 22px; line-height: 1; }
+.strip-btn.prev { left: -10px; }
+.strip-btn.next { right: -10px; }
+@media (hover: none) { .strip-btn { display: none; } }
 .photo-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .photo-del { position: absolute; top: 6px; right: 6px; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; font-size: 18px; line-height: 1; }
 .msg-del { margin-left: 8px; padding: 0; font-size: 13px; }
@@ -552,7 +558,11 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       <input type="file" id="photoInput" accept="image/*" multiple hidden>
       <span class="who" id="photoStatus"></span>
     </div>
-    <div class="photo-grid" id="photoGrid"></div>
+    <div class="photo-strip">
+      <button class="strip-btn prev" type="button" id="photoPrev" aria-label="Fotos anteriores" hidden>‹</button>
+      <div class="photo-grid" id="photoGrid"></div>
+      <button class="strip-btn next" type="button" id="photoNext" aria-label="Mais fotos" hidden>›</button>
+    </div>
   </section>
 
   <section class="block">
@@ -1836,10 +1846,16 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     if (me) { try { await syncMe(); } catch (_) {} }
     refresh();
   }
+  // setas da fila de fotos (só aparecem quando há mais fotos do que cabem)
+  function stripArrows() {
+    const g = $("#photoGrid"), more = g.scrollWidth > g.clientWidth + 4;
+    $("#photoPrev").hidden = !more || g.scrollLeft < 8;
+    $("#photoNext").hidden = !more || g.scrollLeft + g.clientWidth >= g.scrollWidth - 8;
+  }
   let photoKey = "";
   function renderPhotos() {
     const mine = new Set((me && meInfo && meInfo.minhasFotos) || []);
-    const list = (data.fotos || []).filter((f, i) => i < 12 || mine.has(f.path));
+    const list = data.fotos || [];   // todas (até 40): a fila desliza para os lados
     const key = list.map((f) => f.path + (mine.has(f.path) ? "*" : "")).join();
     if (key === photoKey && $("#photoGrid").childElementCount) return;   // evita piscar a cada atualização
     photoKey = key;
@@ -1847,6 +1863,8 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       ? list.map((f) => h("figure", {}, h("img", { src: photoUrl(f.path), alt: `Foto enviada por ${f.nome}`, loading: "lazy" }), h("figcaption", { text: f.nome }),
           mine.has(f.path) ? h("button", { class: "photo-del", type: "button", title: "Apagar esta foto", "aria-label": "Apagar esta foto", onclick: () => deletePhoto(f.path) }, "×") : null))
       : [h("p", { class: "who", text: "Ainda não há fotos. Sê o primeiro a enviar!" })]));
+    $("#photoGrid").scrollLeft = 0;
+    stripArrows();
   }
   let festaFotoI = 0, festaFotoTop = "";
   function showFestaPhoto() {
@@ -2077,6 +2095,10 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   $("#openFesta").addEventListener("click", openFesta);
   $("#meBtn").addEventListener("click", () => (me ? openMine() : openLogin()));
   $("#resBtn").addEventListener("click", openReservas);
+  $("#photoGrid").addEventListener("scroll", stripArrows, { passive: true });
+  window.addEventListener("resize", stripArrows);
+  $("#photoPrev").addEventListener("click", () => $("#photoGrid").scrollBy({ left: -$("#photoGrid").clientWidth * 0.8 }));
+  $("#photoNext").addEventListener("click", () => $("#photoGrid").scrollBy({ left: $("#photoGrid").clientWidth * 0.8 }));
   $("#photoBtn").addEventListener("click", () => {
     if (!me && !$("#photoName").value.trim()) { toast("Escreve o teu nome antes de enviar fotos."); $("#photoName").focus(); return; }
     $("#photoInput").click();
