@@ -228,6 +228,8 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .me-qr { align-self: center; background: #fff; padding: 10px; border-radius: 14px; }
 .me-qr img, .me-qr canvas { display: block; }
 .me-list { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.me-name { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.me-name form { flex-wrap: nowrap; width: 100%; }
 .me-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .me-row.col { flex-direction: column; gap: 4px; }
 .me-row .label { min-width: 84px; }
@@ -695,6 +697,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     photoSlot: () => ["photo_slot", { p_chave: me && me.chave }],
     photoDone: (p) => ["photo_done", { p_chave: me && me.chave, p_path: p }],
     deletePhoto: (p) => ["delete_photo", { p_chave: me && me.chave, p_path: p }],
+    mudarNome: (nome) => ["mudar_nome", { p_chave: me && me.chave, p_nome: nome }],
     deleteMessage: (id) => ["delete_message", { p_chave: me && me.chave, p_id: id }],
     cancelReservation: (code) => ["cancel_reservation", { p_code: code || "" }],
     addGift: (gift, desc, multi, give, code) => ["add_gift", { p_nome: gift, p_detalhes: desc, p_multi: multi, p_chave: me && me.chave, p_dar: give, p_codigo: code || "" }],
@@ -874,12 +877,43 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       h("p", { class: "who", text: "Perdeste o código? Pede aos pais: eles conseguem dar-te um novo." }),
       h("button", { class: "btn-text", type: "button", onclick: closeMe }, "Fechar"));
   }
+  // o meu nome, com "mudar nome" (até 3 vezes por dia)
+  function nameBlock() {
+    const box = h("div", { class: "me-name" });
+    const view = () => box.replaceChildren(h("h2", { text: me.nome }),
+      h("button", { class: "btn-text", type: "button", onclick: edit }, "mudar nome"));
+    function edit() {
+      const inp = h("input", { maxlength: "40", value: me.nome, "aria-label": "Novo nome", autocomplete: "name" });
+      const save = h("button", { class: "btn-primary", type: "submit" }, "Guardar");
+      const form = h("form", { class: "row" }, inp, save, h("button", { class: "btn-text", type: "button", onclick: view }, "cancelar"));
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const nome = inp.value.trim();
+        if (!nome) { inp.focus(); return; }
+        if (nome === me.nome) { view(); return; }
+        save.disabled = true;
+        try {
+          const r = await call("mudarNome", nome);
+          if (r.ok) { setMe({ ...me, nome: r.nome }); toast("Nome mudado!"); view(); refresh(); return; }
+          if (r.reason === "chave") { closeMe(); lostMe(); return; }
+          toast(r.reason === "exists" ? "Já há alguém com esse nome. Experimenta outro."
+              : r.reason === "limit" ? "Já mudaste o nome 3 vezes hoje. Tenta amanhã."
+              : "Escreve um nome válido.");
+        } catch (_) { toast("Não foi possível mudar o nome. Verifica a ligação."); }
+        save.disabled = false; inp.focus();
+      });
+      box.replaceChildren(form);
+      inp.focus(); inp.select();
+    }
+    view();
+    return box;
+  }
   async function openMine() {
     if (!me) { openLogin(); return; }
     const body = h("div", { class: "me-list" }, h("p", { class: "who", text: "A carregar…" }));
     showMe(
       h("span", { class: "eyebrow", text: "As minhas escolhas" }),
-      h("h2", { text: me.nome }),
+      nameBlock(),
       body,
       h("hr"),
       h("span", { class: "label", text: "O meu acesso" }),
