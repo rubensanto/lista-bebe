@@ -421,7 +421,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
         <span class="lbl">Minhas reservas</span><span class="badge" id="resCount" hidden></span>
       </button>
       <button class="me-pill" type="button" id="meBtn"></button>
-      <button class="btn-ghost tv-btn" type="button" id="openFesta" title="Modo festa (TV)" aria-label="Modo festa (TV)">
+      <button class="btn-ghost tv-btn" type="button" id="openFesta" hidden title="Modo festa (TV)" aria-label="Modo festa (TV)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 2l4 5 4-5"/></svg>
       </button>
     </div>
@@ -550,9 +550,9 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   <section class="block" id="photoBlock">
     <div class="block-head">
       <h2>Fotos da festa</h2>
-      <p>Tira fotos e envia-as daqui: vão aparecendo no ecrã da festa.</p>
+      <p id="photoIntro">Tira fotos e envia-as daqui: vão aparecendo no ecrã da festa.</p>
     </div>
-    <div class="photo-send">
+    <div class="photo-send" id="photoSend">
       <div class="field"><label for="photoName">O teu nome</label><input id="photoName" maxlength="40" placeholder="Ex.: Tia Ana" autocomplete="name"></div>
       <button class="btn-primary photo-btn" type="button" id="photoBtn">📷 Enviar fotos</button>
       <input type="file" id="photoInput" accept="image/*" multiple hidden>
@@ -759,6 +759,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   }
 
   // ---------- convidado: acesso pessoal (link, código ou QR) ----------
+  const isDono = () => !!(me && meInfo && meInfo.dono);   // só o dono vê o modo TV
   function setMe(m) { me = m; LS.set("eu", m); if (m) { claimDraft = m.nome; LS.set("nome", m.nome); } renderMe(); }
   function lostMe() { setMe(null); meInfo = null; toast("O teu acesso já não é válido. Entra outra vez com o teu código."); }
   // vai buscar as minhas escolhas à base de dados; as reservas antigas deste navegador passam a ser minhas
@@ -766,7 +767,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     const r = await call("oMeu", key || me.chave, Object.values(codes));
     if (!r.ok) return r;
     if (key) setMe({ nome: r.nome, chave: key.replace(/[^A-Za-z0-9]/g, "").toUpperCase() });
-    meInfo = r;
+    meInfo = r; renderMe();
     codes = {}; (r.reservas || []).forEach((x) => (codes[x.prenda] = x.codigo)); LS.set("reservas", codes);
     qtys = {}; (r.reservas || []).forEach((x) => (qtys[x.prenda] = x.quantidade || 1)); LS.set("quantidades", qtys);
     if (r.palpite) { myVote = r.palpite; LS.set("palpite", r.palpite); }
@@ -923,6 +924,8 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       b.replaceChildren(h("span", { class: "nm", text: "Já participei" }));
       b.title = "Entrar com o meu código"; b.setAttribute("aria-label", "Já participei: entrar com o meu código");
     }
+    $("#openFesta").hidden = !isDono();
+    if (!isDono() && !$("#festa").hidden) closeFesta();
     ["#guessName", "#msgName", "#addWho", "#photoName"].forEach((s) => { $(s).closest(".field").hidden = !!me; });
     $("#addWho").required = !me;
     $("#guessText").textContent = me ? `${me.nome}, qual é o teu palpite? Podes mudar quando quiseres.` : "Qual é o teu palpite? Escreve o teu nome e escolhe.";
@@ -1801,7 +1804,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
           const r = await call("photoSlot");
           if (!r.ok) {
             if (r.reason === "chave") lostMe();
-            else toast(r.reason === "limit" ? "Já enviaste muitas fotos. Obrigado!" : r.reason === "wait" ? "Espera um minuto antes de enviar mais fotos." : "Não foi possível enviar a foto.");
+            else toast(r.reason === "dia" ? "As fotos só se enviam no dia da festa." : r.reason === "limit" ? "Já enviaste muitas fotos. Obrigado!" : r.reason === "wait" ? "Espera um minuto antes de enviar mais fotos." : "Não foi possível enviar a foto.");
             break;
           }
           await uploadPhoto(blob, r.path);
@@ -1854,6 +1857,10 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   }
   let photoKey = "";
   function renderPhotos() {
+    const fase = data.config.fotos || "dia";   // antes do dia: escondida; no dia: envia-se; depois: só se veem
+    $("#photoBlock").hidden = fase === "antes";
+    $("#photoSend").hidden = fase === "depois";
+    $("#photoIntro").textContent = fase === "depois" ? "As fotos que todos enviaram no dia da festa." : "Tira fotos e envia-as daqui: vão aparecendo no ecrã da festa.";
     const mine = new Set((me && meInfo && meInfo.minhasFotos) || []);
     const list = data.fotos || [];   // todas (até 40): a fila desliza para os lados
     const key = list.map((f) => f.path + (mine.has(f.path) ? "*" : "")).join();
@@ -1862,7 +1869,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     $("#photoGrid").replaceChildren(...(list.length
       ? list.map((f) => h("figure", {}, h("img", { src: photoUrl(f.path), alt: `Foto enviada por ${f.nome}`, loading: "lazy" }), h("figcaption", { text: f.nome }),
           mine.has(f.path) ? h("button", { class: "photo-del", type: "button", title: "Apagar esta foto", "aria-label": "Apagar esta foto", onclick: () => deletePhoto(f.path) }, "×") : null))
-      : [h("p", { class: "who", text: "Ainda não há fotos. Sê o primeiro a enviar!" })]));
+      : [h("p", { class: "who", text: fase === "depois" ? "Não foram enviadas fotos." : "Ainda não há fotos. Sê o primeiro a enviar!" })]));
     $("#photoGrid").scrollLeft = 0;
     stripArrows();
   }
@@ -1907,6 +1914,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     showFestaMsg();
   }
   function openFesta() {
+    if (!isDono()) return;
     $("#festa").hidden = false; document.body.style.overflow = "hidden"; document.body.classList.add("festa-open");
     clearInterval(reactTimer); reactSince = null; pollReactions(); reactTimer = setInterval(pollReactions, 1500);
     if (location.hash !== "#festa") history.replaceState(null, "", "#festa");
@@ -2142,7 +2150,8 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       try { const r = await syncMe(); if (!r.ok && r.reason === "chave") lostMe(); } catch (_) {}
     }
     await refresh();
-    if (location.hash === "#festa") openFesta(); else if (!myVote && !data.config.revelacao) openModal();
+    if (location.hash === "#festa" && !isDono()) history.replaceState(null, "", location.pathname + location.search);
+    if (location.hash === "#festa" && isDono()) openFesta(); else if (!myVote && !data.config.revelacao) openModal();
   })();
   setInterval(tick, 1000);
   setInterval(() => { if (!openClaim && !document.hidden) refresh(); }, 30000);
