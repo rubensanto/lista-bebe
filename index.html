@@ -302,6 +302,39 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .name-card.off { opacity: .35; }
 /* modo festa: cabo de guerra e QR */
 .festa-wide { grid-column: 1 / -1; }
+/* modo TV: sempre algum movimento, para não marcar ecrãs antigos */
+.festa { isolation: isolate; background: var(--bg-boy); }
+.festa::before { content: ""; position: fixed; top: 0; bottom: 0; left: 0; width: 400%; z-index: -2; pointer-events: none; will-change: transform;
+  background: linear-gradient(100deg, var(--bg-boy) 0%, var(--bg-girl) 16.6%, #eee4f6 25%, var(--bg-boy) 33.3%, var(--bg-girl) 50%, var(--bg-boy) 66.6%, #fbeee2 75%, var(--bg-girl) 83.3%, var(--bg-boy) 100%);
+  animation: tvSlide 120s ease-in-out infinite alternate; }
+.festa::after { content: ""; position: fixed; inset: -20%; z-index: -1; pointer-events: none;
+  background: radial-gradient(38% 30% at 20% 30%, rgba(255,255,255,.55), transparent 70%), radial-gradient(34% 28% at 80% 70%, rgba(255,255,255,.45), transparent 70%);
+  animation: tvGlow 47s ease-in-out infinite alternate; will-change: transform; }
+@keyframes tvSlide { to { transform: translateX(-75%); } }
+@keyframes tvGlow { 0% { transform: translate(-6%, -4%) scale(1); } 50% { transform: translate(5%, 3%) scale(1.15); } 100% { transform: translate(-3%, 6%) scale(.95); } }
+/* tudo se desloca uns píxeis, devagar (nada fica parado no mesmo sítio) */
+.festa > * { animation: tvDrift 233s ease-in-out infinite; }
+.festa > :nth-child(3n) { animation-duration: 257s; animation-direction: reverse; }
+@keyframes tvDrift { 0%, 100% { translate: 0 0; } 20% { translate: 9px -6px; } 40% { translate: -7px 8px; } 60% { translate: 10px 7px; } 80% { translate: -9px -8px; } }
+/* as caixas da foto e da mensagem ficam com a cor do palpite de quem as enviou */
+.festa-photo, .festa-msgcard { transition: background-color 1.6s ease, opacity 1.2s ease; }
+.festa-photo[data-team="menino"], .festa-msgcard[data-team="menino"] { background-color: #cfe2f6; }
+.festa-photo[data-team="menina"], .festa-msgcard[data-team="menina"] { background-color: #f8d3e1; }
+.festa-photo[data-team="ambos"], .festa-msgcard[data-team="ambos"] { background-color: #ebe1f3; }
+@media (prefers-color-scheme: dark) {
+  .festa-photo[data-team="menino"], .festa-msgcard[data-team="menino"] { background-color: #1d2d40; }
+  .festa-photo[data-team="menina"], .festa-msgcard[data-team="menina"] { background-color: #3d2232; }
+  .festa-photo[data-team="ambos"], .festa-msgcard[data-team="ambos"] { background-color: #2c2539; }
+}
+/* de 10 em 10 minutos as colunas trocam de lugar */
+.festa > :not(.festa-close) { transition: opacity 1.2s ease; }
+.festa.tv-fade > :not(.festa-close) { opacity: 0; }
+.festa.tv-alt .festa-head { order: -1; flex-direction: row-reverse; }
+.festa.tv-alt .festa-msgcard { order: 1; } .festa.tv-alt .festa-photo { order: 2; } .festa.tv-alt .festa-col { order: 3; } .festa.tv-alt .festa-wide { order: 4; }
+/* sem rato a mexer, o botão de fechar e o cursor desaparecem */
+.festa-close { transition: opacity .6s ease; }
+.festa.tv-idle .festa-close { opacity: 0; }
+.festa.tv-idle { cursor: none; }
 .festa .tug-name { font-size: clamp(22px, 2.6vw, 44px); }
 .festa .tug-n { font-size: clamp(14px, 1.4vw, 22px); }
 .festa .tug-field { height: clamp(56px, 6vw, 96px); border-radius: 48px; }
@@ -819,7 +852,7 @@ html.convite-on body { overflow: hidden; }
     <div class="fphoto" id="fPhoto"></div>
     <span class="festa-by" id="fPhotoBy"></span>
   </div>
-  <div class="festa-card">
+  <div class="festa-card festa-msgcard">
     <span class="label">Mensagens para o bebé</span>
     <p class="festa-msg" id="fMsg"></p>
     <span class="festa-by" id="fMsgBy"></span>
@@ -2101,16 +2134,18 @@ html.convite-on body { overflow: hidden; }
     stripArrows();
   }
   let festaFotoI = 0, festaFotoTop = "";
+  const tvTeam = (p) => (p === "menino" || p === "menina" ? p : "ambos");   // sem palpite: as duas cores
   function showFestaPhoto() {
     const list = data.fotos || [], box = $("#fPhoto");
     if (!list.length) {
       box.replaceChildren(h("div", { class: "fphoto-empty" }, "📷", h("span", { text: "Enviem fotos pelo telemóvel: aparecem aqui!" })));
+      $("#festa .festa-photo").dataset.team = "ambos";
       $("#fPhotoBy").textContent = "";
       return;
     }
     const f = list[festaFotoI % list.length];
     const img = h("img", { src: photoUrl(f.path), alt: `Foto enviada por ${f.nome}` });
-    img.onload = () => { box.replaceChildren(img); $("#fPhotoBy").textContent = "📷 " + f.nome; };
+    img.onload = () => { box.replaceChildren(img); $("#fPhotoBy").textContent = "📷 " + f.nome; $("#festa .festa-photo").dataset.team = tvTeam(f.palpite); };
     const nx = list[(festaFotoI + 1) % list.length]; if (nx) new Image().src = photoUrl(nx.path);   // pré-carrega a seguinte
   }
 
@@ -2403,6 +2438,7 @@ html.convite-on body { overflow: hidden; }
     const list = data.mensagens;
     const m = list.length ? list[festaMsgI % list.length] : null;
     $("#fMsg").textContent = m ? `“${m.texto}”` : "Deixem uma mensagem para o bebé no site!";
+    $("#festa .festa-msgcard").dataset.team = m ? tvTeam(m.palpite) : "ambos";
     $("#fMsgBy").textContent = m ? "— " + m.nome : "";
   }
   function renderFesta() {
@@ -2423,6 +2459,13 @@ html.convite-on body { overflow: hidden; }
     else if (!$("#fPhoto").childElementCount) showFestaPhoto();
     showFestaMsg();
   }
+  let tvSwap = null, tvIdle = null;
+  function tvWake() {
+    const f = $("#festa");
+    f.classList.remove("tv-idle");
+    clearTimeout(tvIdle);
+    if (!f.hidden) tvIdle = setTimeout(() => f.classList.add("tv-idle"), 4000);
+  }
   function openFesta() {
     if (!isDono()) return;
     $("#festa").hidden = false; document.body.style.overflow = "hidden"; document.body.classList.add("festa-open");
@@ -2434,6 +2477,13 @@ html.convite-on body { overflow: hidden; }
       try { new QRCode($("#fQr"), { text: pageUrl(), width: 256, height: 256, colorDark: "#1c1830", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M }); } catch (_) {}
     }
     clearInterval(festaRefresh); festaRefresh = setInterval(refresh, 8000); // a corda mexe-se quase ao vivo
+    clearInterval(tvSwap);
+    tvSwap = setInterval(() => {                 // de 10 em 10 minutos as colunas trocam de lugar (contra marcas no ecrã)
+      const f = $("#festa");
+      f.classList.add("tv-fade");
+      setTimeout(() => { f.classList.toggle("tv-alt"); f.classList.remove("tv-fade"); }, 1300);
+    }, 10 * 60 * 1000);
+    tvWake();
     clearInterval(festaTimer);
     festaTimer = setInterval(() => {
       festaTopI++; renderFestaTop();
@@ -2444,7 +2494,7 @@ html.convite-on body { overflow: hidden; }
   }
   function closeFesta() {
     $("#festa").hidden = true; document.body.style.overflow = ""; document.body.classList.remove("festa-open");
-    clearInterval(reactTimer);
+    clearInterval(reactTimer); clearInterval(tvSwap); clearTimeout(tvIdle);
     clearInterval(festaTimer); clearInterval(festaRefresh);
     if (location.hash === "#festa") history.replaceState(null, "", location.pathname + location.search);
     try { if (document.fullscreenElement) document.exitFullscreen(); } catch (_) {}
@@ -2644,6 +2694,7 @@ html.convite-on body { overflow: hidden; }
   $("#gameClose").addEventListener("click", closeGame);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#game").hidden) closeGame(); });
   $("#festaClose").addEventListener("click", closeFesta);
+  ["mousemove", "pointerdown", "keydown"].forEach((ev) => $("#festa").addEventListener(ev, tvWake, { passive: true }));
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#festa").hidden) closeFesta(); });
   const setShare = (open) => { $("#shareMenu").hidden = !open; $("#shareBtn").setAttribute("aria-expanded", String(open)); };
   $("#shareBtn").addEventListener("click", (e) => { e.stopPropagation(); setShare($("#shareMenu").hidden); });
