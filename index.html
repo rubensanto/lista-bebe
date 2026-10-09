@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&family=Cormorant+Garamond:wght@500;600&family=Allura&display=swap">
 <link rel="preload" as="image" href="convite-urso.webp">
-<script>try { if (!localStorage.getItem("lpb-convite") && location.hash !== "#festa") document.documentElement.classList.add("convite-on"); } catch (e) {}</script>
+<script>try { if ((!localStorage.getItem("lpb-eu") || localStorage.getItem("lpb-eu") === "null" || !localStorage.getItem("lpb-convite")) && location.hash !== "#festa" && !/^#c=/.test(location.hash)) document.documentElement.classList.add("convite-on"); } catch (e) {}</script>
 <style>
 /* Layout: hero with countdown, two stat cards (progress + guess pie), gift sections, guestbook */
 :root {
@@ -164,7 +164,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .counter { font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
 
 .empty { color: var(--muted); max-width: 55ch; margin: 0; }
-.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 999px; font-size: 14px; max-width: calc(100% - 32px); box-shadow: var(--shadow); z-index: 30; }
+.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 999px; font-size: 14px; max-width: calc(100% - 32px); box-shadow: var(--shadow); z-index: 130; }
 
 /* guess modal */
 .modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 16px; background: rgba(21,19,29,.55); }
@@ -218,7 +218,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .me-pill .av { position: relative; width: 32px; height: 32px; border-radius: 50%; flex: none; display: grid; place-items: center; font-family: var(--f-display); font-weight: 400; font-size: 17px; color: #fff; background: linear-gradient(135deg, var(--boy) 0 50%, var(--girl) 50% 100%); }
 .me-pill .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .me-pill.unsaved .av::after { content: ""; position: absolute; top: -2px; right: -2px; width: 11px; height: 11px; border-radius: 50%; background: var(--accent); border: 2px solid var(--card); }
-.me-modal { z-index: 80; }
+.me-modal { z-index: 120; }
 .me-modal .modal-card { max-height: calc(100vh - 32px); overflow: auto; }
 .me-modal h2 { overflow-wrap: anywhere; }
 .me-modal hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; width: 100%; }
@@ -423,9 +423,9 @@ html.convite-on body { overflow: hidden; }
 .cv-floaters { position: absolute; inset: 0; pointer-events: none; }
 .cv-floaters i { position: absolute; bottom: -40px; font-style: normal; opacity: 0; animation: cvRise linear infinite; }
 @keyframes cvRise { 0% { transform: translateY(0) rotate(0); opacity: 0; } 10% { opacity: .55; } 90% { opacity: .45; } 100% { transform: translateY(-110vh) rotate(25deg); opacity: 0; } }
-.cv-stage { position: relative; width: var(--cw); aspect-ratio: 2 / 3; flex: none;
-  --cw: min(92vw, calc((100vh - 110px) * 2 / 3), 470px); }
-@supports (height: 100svh) { .cv-stage { --cw: min(92vw, calc((100svh - 110px) * 2 / 3), 470px); } }
+.cv-stage { position: relative; z-index: 1; width: var(--cw); aspect-ratio: 2 / 3; flex: none; container-type: inline-size;
+  --cw: min(92vw, calc((100vh - 150px) * 2 / 3), 470px); }
+@supports (height: 100svh) { .cv-stage { --cw: min(92vw, calc((100svh - 150px) * 2 / 3), 470px); } }
 /* envelope (camadas separadas: o convite passa por entre elas) */
 .cv-env { position: absolute; left: 4%; right: 4%; top: 36%; aspect-ratio: 1.45; pointer-events: none; }
 .cv-env-back { z-index: 1; background: #e8d5c4; border-radius: 10px; box-shadow: 0 18px 40px rgba(120,85,60,.22); }
@@ -479,8 +479,31 @@ html.convite-on body { overflow: hidden; }
 .cv-pill { left: 22.8%; right: 22.8%; top: 87.4%; height: 4.6%; border: 1.5px solid #d6b69b; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 2.2cqw;
   font: 500 3cqw/1 Figtree, system-ui, sans-serif; color: #8a6248; white-space: nowrap; }
 .cv-pill .cv-mid { width: 3.2cqw; color: #c99f7e; }
-.cv-cta { position: relative; z-index: 3; flex: none; font-size: 15px; padding: 11px 22px; background: #b47a5c; color: #fff; box-shadow: 0 8px 20px rgba(140,90,60,.3); opacity: 0; pointer-events: none; }
+.cv-cta { grid-area: 1 / 1; position: relative; z-index: 3; font-size: 15px; padding: 11px 22px; background: #b47a5c; color: #fff; box-shadow: 0 8px 20px rgba(140,90,60,.3); opacity: 0; pointer-events: none; }
 .cv-cta.on { pointer-events: auto; }
+.cv-bottom { flex: none; width: 100%; height: 96px; display: grid; place-items: center; position: relative; z-index: 3; }
+/* nome escrito à mão: no envelope e no canto do convite */
+.cv-env-to { z-index: 6; }
+.cv-env-to span { position: absolute; left: 9%; bottom: 11%; font: 400 9cqw/1 "Allura", cursive; color: #8a6248; white-space: nowrap; transform: rotate(-4deg); clip-path: inset(-30% 100% -40% -5%); }
+.cv-to { left: 5%; top: 2.6%; transform: rotate(-7deg); transform-origin: 0 50%; font: 400 8cqw/1.1 "Allura", cursive; color: #8a6248; white-space: nowrap; z-index: 2; }
+/* o nome escreve-se antes de abrir */
+.cv-form { position: absolute; left: 0; right: 0; top: 3%; z-index: 7; display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 0; text-align: center; }
+.cv-form label { font: 600 22px/1.2 "Cormorant Garamond", Georgia, serif; color: #7e5a41; }
+.cv-form input { width: min(86%, 320px); text-align: center; font: 400 34px/1.15 "Allura", cursive; color: #7e5a41; background: rgba(255,255,255,.8); border: 1.5px solid #e2cbb6; border-radius: 14px; padding: 8px 12px 4px; }
+.cv-form input::placeholder { color: #c4a58c; }
+.cv-form input:focus-visible { outline: 2px solid #c99f7e; outline-offset: 2px; }
+.cv-open { background: #b47a5c; color: #fff; font-size: 15px; padding: 10px 22px; box-shadow: 0 8px 20px rgba(140,90,60,.25); }
+.cv-have { position: absolute; left: 0; right: 0; top: 82%; z-index: 7; margin: 0 auto; width: max-content; background: none; border: none; color: #9a7458; font-size: 14px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+/* o palpite, no fim */
+.cv-choice { grid-area: 1 / 1; display: flex; flex-direction: column; align-items: center; gap: 8px; opacity: 0; pointer-events: none; }
+.cv-choice.on { pointer-events: auto; }
+.cv-choice p { margin: 0; font: 600 19px/1.2 "Cormorant Garamond", Georgia, serif; color: #7e5a41; }
+.cv-choice div { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.cv-choice button { background: #fff; border: 1.5px solid; padding: 9px 14px; font-size: 14px; box-shadow: 0 4px 12px rgba(140,90,60,.12); }
+.cv-choice .b { border-color: #a9c8e8; color: #3b78ba; } .cv-choice .g { border-color: #f4b9c6; color: #c9547a; } .cv-choice .a { border-color: #e2cbb6; color: #8a6248; }
+.cv-choice button:disabled { opacity: .6; }
+.cv-burst { position: absolute; left: 0; top: 0; width: 30px; aspect-ratio: 1; pointer-events: none; z-index: 20; filter: drop-shadow(0 2px 4px rgba(120,85,60,.18)); }
+.cv-burst svg { width: 100%; height: 100%; display: block; }
 /* depois de aparecer, as coisas continuam a mexer-se devagar */
 .cv-live .cv-bear { animation: cvSway 5.5s ease-in-out infinite; }
 @keyframes cvSway { 0%, 100% { transform: rotate(-2.2deg) translateY(0); } 50% { transform: rotate(2.2deg) translateY(-1.6%); } }
@@ -515,6 +538,7 @@ html.convite-on body { overflow: hidden; }
       <div class="cv-hearts" id="cvHearts" aria-hidden="true"></div>
       <div class="cv-heart big" style="left:50%;top:2.9%" data-pop="frame"><svg><use href="#cvHl"/></svg></div>
       <div class="cv-heart big" style="left:50%;top:95.6%" data-pop="frame"><svg><use href="#cvHl"/></svg></div>
+      <div class="cv-to" id="cvTo"></div>
       <div class="cv-bear" id="cvBear"><img src="convite-urso.webp" alt="Ursinho com balões cor-de-rosa e azuis"></div>
       <div class="cv-t cv-cha" id="cvCha" aria-label="Chá"><span>C</span><span>H</span><span>Á</span></div>
       <div class="cv-t cv-rev" id="cvRev">Revelação</div>
@@ -542,9 +566,26 @@ html.convite-on body { overflow: hidden; }
     <div class="cv-env cv-env-front" aria-hidden="true"></div>
     <div class="cv-env cv-env-flap" aria-hidden="true"></div>
     <div class="cv-env cv-env-seal" aria-hidden="true"><div class="cv-seal"><svg viewBox="0 0 24 24"><use href="#cvH"/></svg></div></div>
+    <div class="cv-env cv-env-to" aria-hidden="true"><span id="cvEnvName"></span></div>
     <p class="cv-env-hint" aria-hidden="true">Tens um convite… 💌</p>
+    <form class="cv-form" id="cvForm" autocomplete="off" hidden>
+      <label for="cvName">Para quem é este convite?</label>
+      <input id="cvName" maxlength="40" placeholder="O teu nome" autocomplete="name" enterkeyhint="go">
+      <button class="cv-open" type="submit" id="cvOpenBtn">Abrir o convite 💌</button>
+    </form>
+    <button class="cv-have" type="button" id="cvHave" hidden>Já participei: entrar com o meu código</button>
   </div>
-  <button class="cv-cta" type="button" id="cvGo">Ver a lista de presentes ➜</button>
+  <div class="cv-bottom">
+    <div class="cv-choice" id="cvChoice">
+      <p>Qual é o teu palpite?</p>
+      <div>
+        <button class="b" type="button" data-cv="menino">💙 <span data-k="menino">Menino</span></button>
+        <button class="g" type="button" data-cv="menina">💗 <span data-k="menina">Menina</span></button>
+        <button class="a" type="button" data-cv="ambos">💙💗 Os dois</button>
+      </div>
+    </div>
+    <button class="cv-cta" type="button" id="cvGo">Ver a lista de presentes ➜</button>
+  </div>
 </div>
 <div class="bg-names" aria-hidden="true"><span class="b" id="bgBoy"></span><span class="g" id="bgGirl"></span></div>
 <main class="wrap">
@@ -996,7 +1037,7 @@ html.convite-on body { overflow: hidden; }
       btn.disabled = true; btn.textContent = "A entrar…";
       try {
         const r = await syncMe(k);
-        if (r.ok) { LS.set("guardado", true); renderMe(); closeMe(); toast(`Olá, ${r.nome}! Aqui estão as tuas escolhas.`); await refresh(); return; }
+        if (r.ok) { LS.set("guardado", true); renderMe(); closeMe(); toast(`Olá, ${r.nome}! Aqui estão as tuas escolhas.`); if (cvWaitLogin) cvWaitLogin(); await refresh(); return; }
         toast("Esse código não existe. Confirma as letras e tenta outra vez.");
       } catch (_) { toast("Não foi possível entrar. Verifica a ligação."); }
       btn.disabled = false; btn.textContent = "Entrar";
@@ -2055,9 +2096,11 @@ html.convite-on body { overflow: hidden; }
   }
 
   // ---------- convite animado (ao entrar no site) ----------
-  const CV_HEARTS = [[110, 113], [208, 220], [576, 130], [648, 268], [107, 385], [935, 392], [963, 55], [925, 642], [95, 676], [166, 815],
+  // Quem ainda não tem conta escreve o nome no envelope para o abrir (fica com conta) e, no fim, dá o palpite.
+  const CV_HEARTS = [[576, 130], [648, 268], [107, 385], [935, 392], [963, 55], [925, 642], [95, 676], [166, 815],
     [850, 880], [142, 1135], [916, 1120], [830, 1265], [110, 1320], [910, 1400]];
-  let cvAnims = [], cvTimers = [], cvResolve = null, cvDone = false;
+  const CV_BLUE = "#a9c8e8", CV_PINK = "#f4b9c6";
+  let cvAnims = [], cvTimers = [], cvResolve = null, cvDone = false, cvOpened = false, cvGate = false, cvWaitLogin = null;
   function cvBuild() {
     if ($("#cvHearts").childElementCount) return;
     $("#cvHearts").append(...CV_HEARTS.map(([x, y], i) => {
@@ -2084,57 +2127,128 @@ html.convite-on body { overflow: hidden; }
   }
   const cvPop = (el, delay, d = 520) => cvA(el, [{ transform: "translate(-50%,-50%) scale(0)", opacity: 0 }, { transform: "translate(-50%,-50%) scale(1.25)", opacity: 1, offset: 0.6 }, { transform: "translate(-50%,-50%) scale(1)", opacity: 1 }], { duration: d, delay });
   const cvUp = (el, delay, d = 700, dy = 14) => cvA(el, [{ transform: `translateY(${dy}px)`, opacity: 0, filter: "blur(3px)" }, { transform: "none", opacity: 1, filter: "blur(0)" }], { duration: d, delay });
+  const cvWrite = (el, delay, d) => cvA(el, [{ clipPath: "inset(-30% 100% -40% -5%)" }, { clipPath: "inset(-30% -5% -40% -5%)" }], { duration: d, delay, easing: "cubic-bezier(.45,.1,.35,1)" });
+  const cvT = (ms) => (reduceMotion ? 0 : ms);
   function cvFinish() {
+    if (!cvOpened) return;                     // à espera do nome: não há nada para saltar
     cvTimers.forEach(clearTimeout); cvTimers = [];
     cvAnims.forEach((a) => { try { a.finish(); } catch (_) {} });
     cvLive();
   }
+  // o nome cabe no canto do convite: encolhe a letra se for comprido
+  function cvFitName() {
+    const el = $("#cvTo"), max = $("#cvCard").clientWidth * 0.42;
+    el.style.fontSize = "";
+    let fs = parseFloat(getComputedStyle(el).fontSize);
+    while (el.scrollWidth > max && fs > 10) { fs -= 1; el.style.fontSize = fs + "px"; }
+  }
+  // fim da animação: pede o palpite (se ainda não houver) ou mostra os corações do palpite que já tem
   function cvLive() {
     if (cvDone) return;
     cvDone = true;
     $("#convite").classList.add("cv-live");
-    $("#cvGo").classList.add("on");
     $("#cvSkip").hidden = true;
+    const needVote = !data.config.revelacao && !myVote;
+    if (needVote) {
+      const nm = NM();
+      document.querySelectorAll("#cvChoice [data-k]").forEach((s) => (s.textContent = nm[s.dataset.k]));
+      document.querySelectorAll("#cvChoice button").forEach((b) => (b.disabled = false));
+      $("#cvChoice").classList.add("on");
+      cvA($("#cvChoice"), [{ transform: "translateY(16px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: cvT(600) });
+    } else {
+      const pick = data.config.revelacao || (myVote === "menino" || myVote === "menina" ? myVote : "ambos");
+      cvHearts(pick, true);
+      cvShowGo();
+    }
   }
-  function playConvite() {
-    cvBuild();
-    cvAnims.forEach((a) => a.cancel()); cvAnims = []; cvTimers.forEach(clearTimeout); cvTimers = []; cvDone = false;
-    const root = $("#convite");
-    root.classList.remove("cv-live");
-    document.documentElement.classList.add("convite-on");
-    $("#cvSkip").hidden = false; $("#cvGo").classList.remove("on");
-    const reduce = reduceMotion;
-    const T = (ms) => (reduce ? 0 : ms);
-    const all = (sel) => [...root.querySelectorAll(sel)];
+  function cvShowGo(delay = 0) {
+    $("#cvGo").textContent = cvGate ? "Entrar na lista de presentes ➜" : "Ver a lista de presentes ➜";
+    $("#cvGo").classList.add("on");
+    cvA($("#cvGo"), [{ transform: "translateY(16px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: cvT(600), delay: cvT(delay) });
+  }
+  // corações da carta, azuis, cor-de-rosa ou dos dois, a saltar do convite
+  function cvHearts(pick, quiet) {
+    const cols = pick === "menino" ? [CV_BLUE] : pick === "menina" ? [CV_PINK] : [CV_BLUE, CV_PINK];
+    const big = { menino: ["#cvBigB", "#cvBigG"], menina: ["#cvBigG", "#cvBigB"] }[pick];
+    if (big) {
+      cvA($(big[0]), [{ transform: "translate(-50%,-50%) scale(1)" }, { transform: "translate(-50%,-50%) scale(1.45)" }], { duration: cvT(500) });
+      cvA($(big[1]), [{ opacity: 1 }, { opacity: 0.3 }], { duration: cvT(500) });
+    } else ["#cvBigB", "#cvBigG"].forEach((s) => cvA($(s), [{ transform: "translate(-50%,-50%) scale(1)" }, { transform: "translate(-50%,-50%) scale(1.22)" }], { duration: cvT(500) }));
+    const emo = pick === "menino" ? ["💙"] : pick === "menina" ? ["💗"] : ["💙", "💗"];
+    document.querySelectorAll("#cvFloat i").forEach((e, i) => (e.textContent = emo[i % emo.length]));
+    if (reduceMotion) return;
+    const root = $("#convite"), rr = root.getBoundingClientRect();
+    const from = ["#cvBigB", "#cvBigG"].map((s) => $(s).getBoundingClientRect());
+    const n = quiet ? 16 : 34;
+    for (let i = 0; i < n; i++) {
+      const col = cols[i % cols.length], src = from[cols.length === 1 ? (col === CV_BLUE ? 0 : 1) : i % 2];
+      const el = h("div", { class: "cv-burst", style: `color:${col}` });
+      el.innerHTML = '<svg viewBox="0 0 24 24"><use href="#cvHw"/></svg>';
+      root.append(el);
+      const x0 = src.left + src.width / 2 - rr.left - 15, y0 = src.top + src.height / 2 - rr.top - 15;
+      const ang = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.5, dist = 120 + Math.random() * Math.min(rr.width, rr.height) * 0.5;
+      const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist, s = 0.5 + Math.random() * 0.9, rot = (Math.random() - 0.5) * 70;
+      const a = el.animate([
+        { transform: `translate(${x0}px,${y0}px) scale(.2) rotate(0deg)`, opacity: 0 },
+        { transform: `translate(${x0 + dx * 0.6}px,${y0 + dy * 0.6}px) scale(${s}) rotate(${rot / 2}deg)`, opacity: 1, offset: 0.35 },
+        { transform: `translate(${x0 + dx}px,${y0 + dy - 80}px) scale(${s * 0.9}) rotate(${rot}deg)`, opacity: 0 }],
+        { duration: 1800 + Math.random() * 1200, delay: i * (quiet ? 60 : 35), easing: "cubic-bezier(.15,.7,.3,1)", fill: "both" });
+      a.onfinish = () => el.remove();
+    }
+  }
+  async function cvVote(choice) {
+    const btns = document.querySelectorAll("#cvChoice button");
+    btns.forEach((b) => (b.disabled = true));
+    if (choice !== "ambos") {
+      try {
+        const r = await call("vote", choice);
+        if (!r.ok) throw new Error(r.reason);
+        myVote = choice; LS.set("palpite", choice);
+      } catch (_) { toast("Não foi possível guardar o palpite. Tenta outra vez."); btns.forEach((b) => (b.disabled = false)); return; }
+    } else { myVote = "skip"; LS.set("palpite", "skip"); }
+    $("#cvChoice").classList.remove("on");
+    cvA($("#cvChoice"), [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(-10px)" }], { duration: cvT(300) });
+    cvHearts(choice, false);
+    cvShowGo(900);
+    render();
+  }
+  // o envelope recebe o nome e abre-se; o convite sai lá de dentro e ganha vida, por partes
+  function cvOpen() {
+    if (cvOpened) return;
+    if (!me) { if ($("#cvForm").hidden) cvShowForm(); return; }   // a conta guardada já não vale: pede o nome
+    cvOpened = true; cvWaitLogin = null;
+    const root = $("#convite"), all = (sel) => [...root.querySelectorAll(sel)], T = cvT, reduce = reduceMotion;
     const card = $("#cvCard"), envs = all(".cv-env"), back = $("#convite .cv-env-back");
-    root.classList.add("cv-run");
-    // 1) o envelope chega, abre-se e o convite sai lá de dentro
+    $("#cvEnvName").textContent = "Para " + me.nome;
+    $("#cvTo").textContent = "Para " + me.nome;
+    cvFitName();
+    if (!$("#cvForm").hidden) {
+      cvA($("#cvForm"), [{ opacity: 1 }, { opacity: 0, transform: "translateY(-10px)" }], { duration: T(350) });
+      cvTimers.push(setTimeout(() => { $("#cvForm").hidden = true; }, T(360)));
+    }
+    $("#cvHave").hidden = true;
+    if (!cvGate) $("#cvSkip").hidden = false;
     const stage = $("#cvStage").getBoundingClientRect(), envR = back.getBoundingClientRect();
     const s0 = (envR.height * 0.84) / stage.height;                       // cartão pequeno, cabe dentro do envelope
     const cy = stage.top + stage.height / 2;
     const inY = envR.top + envR.height * 0.55 - cy;
     const outY = envR.top - cy - stage.height * s0 * 0.08;
-    cvA(root, [{ opacity: 0 }, { opacity: 1 }], { duration: T(400) });
-    envs.forEach((e) => (e.style.display = reduce ? "none" : ""));
-    $("#convite .cv-env-hint").style.display = reduce ? "none" : "";
     if (!reduce) {
-      const drop = [{ transform: "translateY(60px) scale(.85) rotate(-4deg)", opacity: 0 }, { transform: "translateY(-6px) scale(1.02) rotate(1deg)", opacity: 1, offset: 0.7 }, { transform: "none", opacity: 1 }];
-      envs.forEach((e) => cvA(e, drop, { duration: 900, delay: 150 }));
-      cvA($("#convite .cv-env-hint"), [{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none", offset: 0.3 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }], { duration: 1700, delay: 450 });
+      cvWrite($("#cvEnvName"), 150, 1000);
       cvA($("#convite .cv-seal"), [{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: "translate(-50%,-50%) scale(1.3) rotate(-12deg)", opacity: 1, offset: 0.4 }, { transform: "translate(-50%,-50%) scale(0) rotate(30deg)", opacity: 0 }], { duration: 550, delay: 1350 });
       cvA($("#convite .cv-env-flap"), [{ transform: "perspective(900px) rotateX(0)", zIndex: 4 }, { transform: "perspective(900px) rotateX(90deg)", zIndex: 4, offset: 0.5 }, { transform: "perspective(900px) rotateX(90deg)", zIndex: 0, offset: 0.51 }, { transform: "perspective(900px) rotateX(180deg)", zIndex: 0 }], { duration: 750, delay: 1700, easing: "ease-in-out" });
       cvA(card, [
         { transform: `translateY(${inY}px) scale(${s0})`, zIndex: 2, offset: 0 },
         { transform: `translateY(${outY}px) scale(${s0})`, zIndex: 2, offset: 0.42 },
-        { transform: `translateY(${outY}px) scale(${s0})`, zIndex: 6, offset: 0.43 },
-        { transform: `translateY(${outY - 10}px) scale(${s0 * 1.04}) rotate(-2deg)`, zIndex: 6, offset: 0.55 },
-        { transform: "none", zIndex: 6 }], { duration: 2000, delay: 2350, easing: "cubic-bezier(.45,.05,.25,1)" });
+        { transform: `translateY(${outY}px) scale(${s0})`, zIndex: 9, offset: 0.43 },
+        { transform: `translateY(${outY - 10}px) scale(${s0 * 1.04}) rotate(-2deg)`, zIndex: 9, offset: 0.55 },
+        { transform: "none", zIndex: 9 }], { duration: 2000, delay: 2350, easing: "cubic-bezier(.45,.05,.25,1)" });
       envs.forEach((e) => cvA(e, [{ transform: "none", opacity: 1 }, { transform: "translateY(55vh) rotate(6deg)", opacity: 0 }], { duration: 900, delay: 3400, easing: "cubic-bezier(.5,0,.75,0)" }));
-    }
+    } else envs.forEach((e) => (e.style.display = "none"));
 
-    // 2) o convite ganha vida, por partes
     const t0 = T(4400);
     const at = (ms) => t0 + T(ms);
+    cvA(card, [{ visibility: "visible" }, { visibility: "visible" }], { duration: 1 });
     cvA(card.querySelector(".cv-frame"), [{ opacity: 0 }, { opacity: 1 }], { duration: 10, delay: at(0) });
     cvDraw($("#cvArchL"), { duration: T(1700), delay: at(0), easing: "cubic-bezier(.45,.1,.3,1)" });
     cvDraw($("#cvArchR"), { duration: T(1700), delay: at(0), easing: "cubic-bezier(.45,.1,.3,1)" });
@@ -2143,6 +2257,7 @@ html.convite-on body { overflow: hidden; }
     all("#cvCha span").forEach((el, i) => cvA(el, [{ transform: "translateY(40%) scale(.9)", opacity: 0, filter: "blur(6px)" }, { transform: "none", opacity: 1, filter: "blur(0)" }], { duration: T(800), delay: at(400 + i * 150) }));
     cvA($("#cvRev"), [{ clipPath: "inset(-20% 100% -30% -5%)", opacity: 0.2 }, { clipPath: "inset(-20% -5% -30% -5%)", opacity: 1 }], { duration: T(1700), delay: at(950), easing: "cubic-bezier(.4,.1,.3,1)" });
     cvA($("#cvBear"), [{ transform: "translate(20%, 60%) rotate(10deg) scale(.7)", opacity: 0 }, { transform: "translate(-3%, -4%) rotate(-4deg) scale(1.03)", opacity: 1, offset: 0.65 }, { transform: "none", opacity: 1 }], { duration: T(1800), delay: at(700), easing: "cubic-bezier(.3,.7,.3,1)" });
+    cvWrite($("#cvTo"), at(2000), T(1300));
     cvDraw($("#cvSw1"), { duration: T(700), delay: at(2350), easing: "ease-out" });
     cvPop($("#cvSwHeart"), at(2900), T(600));
     cvDraw($("#cvSw2"), { duration: T(700), delay: at(3100), easing: "ease-out" });
@@ -2163,11 +2278,61 @@ html.convite-on body { overflow: hidden; }
     cvPop($("#cvBigG"), at(6350), T(650));
     cvA($("#cvRays"), [{ opacity: 0, transform: "scale(.6)" }, { opacity: 1, transform: "scale(1)" }], { duration: T(500), delay: at(6550) });
     cvUp($("#cvPill"), at(6800), T(700), 10);
-    cvA($("#cvGo"), [{ transform: "translateY(16px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: T(600), delay: at(7200) });
     cvTimers.push(setTimeout(cvLive, at(7300)));
+  }
+  // o envelope chega; quem não tem conta escreve o nome, quem já tem vê-o escrito
+  function playConvite() {
+    cvBuild();
+    cvAnims.forEach((a) => a.cancel()); cvAnims = []; cvTimers.forEach(clearTimeout); cvTimers = [];
+    cvDone = false; cvOpened = false; cvGate = !me;
+    const root = $("#convite"), all = (sel) => [...root.querySelectorAll(sel)], T = cvT, reduce = reduceMotion;
+    root.classList.remove("cv-live");
+    document.documentElement.classList.add("convite-on");
+    root.classList.add("cv-run");
+    $("#cvSkip").hidden = true;
+    $("#cvGo").classList.remove("on"); $("#cvChoice").classList.remove("on");
+    $("#cvForm").hidden = true; $("#cvHave").hidden = true;
+    $("#cvEnvName").textContent = ""; $("#cvTo").textContent = "";
+    root.querySelectorAll(".cv-burst").forEach((e) => e.remove());
+    const card = $("#cvCard"), envs = all(".cv-env");
+    envs.forEach((e) => (e.style.display = ""));
+    $("#convite .cv-env-hint").style.display = "";
+    cvA(root, [{ opacity: 0 }, { opacity: 1 }], { duration: T(400) });
+    // até abrir, o convite está escondido dentro do envelope e todas as partes por mostrar
+    cvA(card, [{ visibility: "hidden" }, { visibility: "hidden" }], { duration: 1 });
+    cvA($("#cvChoice"), [{ opacity: 0 }, { opacity: 0 }], { duration: 1 });
+    cvA($("#cvGo"), [{ opacity: 0 }, { opacity: 0 }], { duration: 1 });
+    const drop = [{ transform: "translateY(60px) scale(.85) rotate(-4deg)", opacity: 0 }, { transform: "translateY(-6px) scale(1.02) rotate(1deg)", opacity: 1, offset: 0.7 }, { transform: "none", opacity: 1 }];
+    envs.forEach((e) => cvA(e, drop, { duration: T(900), delay: T(150) }));
+    cvA($("#convite .cv-env-hint"), [{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: T(700), delay: T(450) });
+    if (cvGate) cvTimers.push(setTimeout(cvShowForm, T(1000)));   // é preciso o nome (e fica com conta) para entrar
+    else {
+      cvTimers.push(setTimeout(cvOpen, T(1100)));
+    }
     return new Promise((res) => { cvResolve = res; });
   }
+  function cvShowForm() {
+    cvGate = true;
+    $("#cvForm").hidden = false; $("#cvHave").hidden = false; $("#cvSkip").hidden = true;
+    $("#convite .cv-env-hint").style.display = "none";
+    cvA($("#cvForm"), [{ opacity: 0, transform: "translateY(-12px)" }, { opacity: 1, transform: "none" }], { duration: cvT(600) });
+    $("#cvOpenBtn").disabled = false;
+    if (!$("#cvName").value) $("#cvName").value = claimDraft || "";
+    try { $("#cvName").focus({ preventScroll: true }); } catch (_) {}
+    cvWaitLogin = () => cvOpen();               // quem entrar com o código também abre o convite
+  }
+  async function cvSubmitName(e) {
+    e.preventDefault();
+    const name = $("#cvName").value.trim(), btn = $("#cvOpenBtn");
+    if (!name) { toast("Escreve o teu nome para abrir o convite."); $("#cvName").focus(); return; }
+    btn.disabled = true;
+    try {
+      if (await ensureMe(name)) { cvOpen(); return; }
+    } catch (_) { toast("Não foi possível continuar. Verifica a ligação e tenta outra vez."); }
+    if (!cvOpened) btn.disabled = false;
+  }
   function closeConvite() {
+    if (cvGate && !cvDone) return;               // sem nome e palpite não se entra
     const root = $("#convite");
     cvFinish();
     LS.set("convite", true);
@@ -2177,7 +2342,9 @@ html.convite-on body { overflow: hidden; }
       document.documentElement.classList.remove("convite-on");
       root.classList.remove("cv-run", "cv-live");
       root.getAnimations({ subtree: true }).forEach((x) => x.cancel());
+      root.querySelectorAll(".cv-burst").forEach((e) => e.remove());
       cvAnims = [];
+      afterAction();                             // primeira vez: sugere guardar o código pessoal
       if (cvResolve) { const r = cvResolve; cvResolve = null; r(); }
     };
   }
@@ -2399,7 +2566,10 @@ html.convite-on body { overflow: hidden; }
   $("#openConvite").addEventListener("click", () => { playConvite(); });
   $("#cvSkip").addEventListener("click", (e) => { e.stopPropagation(); closeConvite(); });
   $("#cvGo").addEventListener("click", (e) => { e.stopPropagation(); closeConvite(); });
-  $("#convite").addEventListener("click", () => { if (!cvDone) cvFinish(); });   // tocar salta a animação
+  $("#convite").addEventListener("click", (e) => { if (!cvDone && !e.target.closest("form, button")) cvFinish(); });   // tocar salta a animação
+  $("#cvForm").addEventListener("submit", cvSubmitName);
+  $("#cvHave").addEventListener("click", (e) => { e.stopPropagation(); openLogin(); });
+  document.querySelectorAll("#cvChoice [data-cv]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); cvVote(b.dataset.cv); }));
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.documentElement.classList.contains("convite-on")) closeConvite(); });
   $("#meBtn").addEventListener("click", () => (me ? openMine() : openLogin()));
   $("#resBtn").addEventListener("click", openReservas);
@@ -2437,7 +2607,7 @@ html.convite-on body { overflow: hidden; }
   // ---------- arranque ----------
   render();
   // na primeira visita, o convite animado aparece antes de tudo
-  const intro = document.documentElement.classList.contains("convite-on") ? playConvite() : null;
+  let intro = document.documentElement.classList.contains("convite-on") ? playConvite() : null;
   (async () => {
     // link pessoal (#c=CÓDIGO): entra com esse convidado e tira o código do endereço
     const m = location.hash.match(/^#c=([A-Za-z0-9-]{8,12})$/);
@@ -2451,6 +2621,7 @@ html.convite-on body { overflow: hidden; }
     } else if (me) {
       try { const r = await syncMe(); if (!r.ok && r.reason === "chave") lostMe(); } catch (_) {}
     }
+    if (!intro && !me && location.hash !== "#festa") intro = playConvite();   // sem conta não se entra
     await refresh();
     if (intro) await intro;
     if (location.hash === "#festa" && !isDono()) history.replaceState(null, "", location.pathname + location.search);
