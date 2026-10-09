@@ -151,6 +151,10 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .btn-primary:hover:not(:disabled) { filter: brightness(1.07); }
 .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
 .btn-text { background: none; border: none; padding: 4px 0; color: var(--muted); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+.btn-danger { display: inline-flex; align-items: center; justify-content: center; gap: 8px; align-self: center; margin-top: 6px; background: transparent; color: #c62828; border: 1.5px solid #e57373; font-size: 14px; }
+.btn-danger:hover:not(:disabled) { background: #fdecec; }
+.btn-danger svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-color-scheme: dark) { .btn-danger { color: #ff8a80; border-color: #b85450; } .btn-danger:hover:not(:disabled) { background: #3a1c1c; } }
 
 /* guestbook */
 .guest { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 22px; align-items: start; }
@@ -924,6 +928,7 @@ html.convite-on body { overflow: hidden; }
     photoDone: (p) => ["photo_done", { p_chave: me && me.chave, p_path: p }],
     deletePhoto: (p) => ["delete_photo", { p_chave: me && me.chave, p_path: p }],
     mudarNome: (nome) => ["mudar_nome", { p_chave: me && me.chave, p_nome: nome }],
+    apagarConta: () => ["apagar_conta", { p_chave: me && me.chave }],
     deleteMessage: (id) => ["delete_message", { p_chave: me && me.chave, p_id: id }],
     cancelReservation: (code) => ["cancel_reservation", { p_code: code || "" }],
     addGift: (gift, desc, multi, give, code) => ["add_gift", { p_nome: gift, p_detalhes: desc, p_multi: multi, p_chave: me && me.chave, p_dar: give, p_codigo: code || "" }],
@@ -1147,7 +1152,8 @@ html.convite-on body { overflow: hidden; }
       accessBlock(),
       h("div", { class: "row", style: "justify-content: space-between" },
         h("button", { class: "btn-text", type: "button", onclick: logout }, "Sair deste aparelho"),
-        h("button", { class: "btn-text", type: "button", onclick: closeMe }, "Fechar")));
+        h("button", { class: "btn-text", type: "button", onclick: closeMe }, "Fechar")),
+      isDono() ? null : trashBtn());
     let r;
     try { r = await syncMe(); } catch (_) { body.replaceChildren(h("p", { class: "who", text: "Não foi possível carregar. Verifica a ligação." })); return; }
     if (!r.ok) { closeMe(); lostMe(); return; }
@@ -1167,6 +1173,36 @@ html.convite-on body { overflow: hidden; }
                   : h("span", { class: "who", text: "Ainda não jogaste." })));
     if (r.mensagens) rows.push(h("div", { class: "me-row" }, h("span", { class: "label", text: "Mensagens" }), h("span", { text: `${r.mensagens} deixada${r.mensagens === 1 ? "" : "s"}` })));
     body.replaceChildren(...rows);
+  }
+  const TRASH = '<path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/>';
+  function trashBtn() {
+    const b = h("button", { class: "btn-danger", type: "button", onclick: deleteAccount });
+    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${TRASH}</svg>Eliminar a minha conta`;
+    return b;
+  }
+  // apaga a conta e tudo o que a pessoa fez: reservas, mensagens, fotos, pontos e palpite
+  async function deleteAccount(e) {
+    if (!me) return;
+    if (!confirm("Eliminar a tua conta?\n\nApaga para sempre as tuas reservas, mensagens, fotos, pontos dos jogos e o teu palpite.")) return;
+    if (!confirm("Tens a certeza? Isto não se pode desfazer.")) return;
+    const btn = e.currentTarget; btn.disabled = true;
+    try {
+      const r = await call("apagarConta");
+      if (!r.ok) {
+        btn.disabled = false;
+        if (r.reason === "chave") { closeMe(); lostMe(); }
+        else toast(r.reason === "dono" ? "A conta dos pais não pode ser eliminada." : "Não foi possível eliminar a conta.");
+        return;
+      }
+      // os ficheiros das fotos (só é permitido porque acabaram de ser marcadas como apagadas)
+      const headers = { apikey: SUPABASE_KEY };
+      if (!SUPABASE_KEY.startsWith("sb_")) headers.Authorization = "Bearer " + SUPABASE_KEY;
+      await Promise.all((r.fotos || []).map((p) => fetch(`${SUPABASE_URL}/storage/v1/object/fotos/${encodeURIComponent(p)}`, { method: "DELETE", headers }).catch(() => {})));
+    } catch (_) { btn.disabled = false; toast("Não foi possível eliminar. Verifica a ligação e tenta outra vez."); return; }
+    setMe(null); meInfo = null; codes = {}; LS.set("reservas", codes); qtys = {}; LS.set("quantidades", qtys);
+    myVote = null; LS.set("palpite", null); LS.set("guardado", false); LS.set("convite", null); claimDraft = ""; LS.set("nome", "");
+    closeMe(); toast("A tua conta foi eliminada."); render(); refresh();
+    playConvite();                               // sem conta não se entra: volta ao convite
   }
   function logout() {
     if (!LS.get("guardado", false) && !confirm("Ainda não guardaste o teu código. Sem ele não consegues voltar às tuas escolhas. Sair mesmo assim?")) return;
