@@ -488,8 +488,19 @@ html.convite-on body { overflow: hidden; }
 .cv-to { left: 5%; top: 2.6%; transform: rotate(-7deg); transform-origin: 0 50%; font: 400 8cqw/1.1 "Allura", cursive; color: #8a6248; white-space: nowrap; z-index: 2; }
 /* o nome escreve-se antes de abrir */
 .cv-form { position: absolute; left: 0; right: 0; top: 3%; z-index: 7; display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 0; text-align: center; }
+.cv-gate .cv-env { top: 49%; }
+.cv-gate .cv-have { top: 93%; }
+.cv-form { gap: 9px; }
+.cv-pick { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.cv-pick > span { font: 600 18px/1.2 "Cormorant Garamond", Georgia, serif; color: #7e5a41; }
+.cv-pick div { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.cv-pick button { background: rgba(255,255,255,.85); border: 1.5px solid; padding: 7px 12px; font-size: 14px; transition: background .2s, color .2s, transform .2s; }
+.cv-pick .b { border-color: #a9c8e8; color: #3b78ba; } .cv-pick .g { border-color: #f4b9c6; color: #c9547a; } .cv-pick .a { border-color: #e2cbb6; color: #8a6248; }
+.cv-pick .b[aria-checked="true"] { background: #a9c8e8; color: #fff; } .cv-pick .g[aria-checked="true"] { background: #f2a7b9; color: #fff; }
+.cv-pick .a[aria-checked="true"] { background: linear-gradient(90deg, #a9c8e8, #f2a7b9); color: #fff; border-color: transparent; }
+.cv-pick button[aria-checked="true"] { transform: scale(1.06); }
 .cv-form label { font: 600 22px/1.2 "Cormorant Garamond", Georgia, serif; color: #7e5a41; }
-.cv-form input { width: min(86%, 320px); text-align: center; font: 400 34px/1.15 "Allura", cursive; color: #7e5a41; background: rgba(255,255,255,.8); border: 1.5px solid #e2cbb6; border-radius: 14px; padding: 8px 12px 4px; }
+.cv-form input { width: min(86%, 320px); text-align: center; font: 400 31px/1.15 "Allura", cursive; color: #7e5a41; background: rgba(255,255,255,.8); border: 1.5px solid #e2cbb6; border-radius: 14px; padding: 8px 12px 4px; }
 .cv-form input::placeholder { color: #c4a58c; }
 .cv-form input:focus-visible { outline: 2px solid #c99f7e; outline-offset: 2px; }
 .cv-open { background: #b47a5c; color: #fff; font-size: 15px; padding: 10px 22px; box-shadow: 0 8px 20px rgba(140,90,60,.25); }
@@ -570,7 +581,15 @@ html.convite-on body { overflow: hidden; }
     <p class="cv-env-hint" aria-hidden="true">Tens um convite… 💌</p>
     <form class="cv-form" id="cvForm" autocomplete="off" hidden>
       <label for="cvName">Para quem é este convite?</label>
-      <input id="cvName" maxlength="40" placeholder="O teu nome" autocomplete="name" enterkeyhint="go">
+      <input id="cvName" maxlength="40" placeholder="O teu nome" autocomplete="name" enterkeyhint="done">
+      <div class="cv-pick" id="cvPick" role="radiogroup" aria-label="O teu palpite">
+        <span>Qual é o teu palpite?</span>
+        <div>
+          <button class="b" type="button" role="radio" aria-checked="false" data-pick="menino">💙 <span data-k="menino">Menino</span></button>
+          <button class="g" type="button" role="radio" aria-checked="false" data-pick="menina">💗 <span data-k="menina">Menina</span></button>
+          <button class="a" type="button" role="radio" aria-checked="false" data-pick="ambos">💙💗 Os dois</button>
+        </div>
+      </div>
       <button class="cv-open" type="submit" id="cvOpenBtn">Abrir o convite 💌</button>
     </form>
     <button class="cv-have" type="button" id="cvHave" hidden>Já participei: entrar com o meu código</button>
@@ -2100,7 +2119,7 @@ html.convite-on body { overflow: hidden; }
   const CV_HEARTS = [[576, 130], [648, 268], [107, 385], [935, 392], [963, 55], [925, 642], [95, 676], [166, 815],
     [850, 880], [142, 1135], [916, 1120], [830, 1265], [110, 1320], [910, 1400]];
   const CV_BLUE = "#a9c8e8", CV_PINK = "#f4b9c6";
-  let cvAnims = [], cvTimers = [], cvResolve = null, cvDone = false, cvOpened = false, cvGate = false, cvWaitLogin = null;
+  let cvAnims = [], cvTimers = [], cvResolve = null, cvDone = false, cvOpened = false, cvGate = false, cvWaitLogin = null, cvPicked = null;
   function cvBuild() {
     if ($("#cvHearts").childElementCount) return;
     $("#cvHearts").append(...CV_HEARTS.map(([x, y], i) => {
@@ -2157,8 +2176,8 @@ html.convite-on body { overflow: hidden; }
       cvA($("#cvChoice"), [{ transform: "translateY(16px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: cvT(600) });
     } else {
       const pick = data.config.revelacao || (myVote === "menino" || myVote === "menina" ? myVote : "ambos");
-      cvHearts(pick, true);
-      cvShowGo();
+      cvHearts(pick, !cvGate);                   // acabou de escolher: chuva de corações a sério
+      cvShowGo(cvGate ? 900 : 0);
     }
   }
   function cvShowGo(delay = 0) {
@@ -2176,23 +2195,26 @@ html.convite-on body { overflow: hidden; }
     } else ["#cvBigB", "#cvBigG"].forEach((s) => cvA($(s), [{ transform: "translate(-50%,-50%) scale(1)" }, { transform: "translate(-50%,-50%) scale(1.22)" }], { duration: cvT(500) }));
     const emo = pick === "menino" ? ["💙"] : pick === "menina" ? ["💗"] : ["💙", "💗"];
     document.querySelectorAll("#cvFloat i").forEach((e, i) => (e.textContent = emo[i % emo.length]));
+    const from = ["#cvBigB", "#cvBigG"].map((s) => $(s).getBoundingClientRect());
+    cvBurst(cols, quiet ? 16 : 34, (col, i) => from[cols.length === 1 ? (col === CV_BLUE ? 0 : 1) : i % 2], quiet ? 60 : 35);
+  }
+  // corações que saltam de um sítio (src devolve o rectângulo de onde sai cada um)
+  function cvBurst(cols, n, src, gap, spread = 1) {
     if (reduceMotion) return;
     const root = $("#convite"), rr = root.getBoundingClientRect();
-    const from = ["#cvBigB", "#cvBigG"].map((s) => $(s).getBoundingClientRect());
-    const n = quiet ? 16 : 34;
     for (let i = 0; i < n; i++) {
-      const col = cols[i % cols.length], src = from[cols.length === 1 ? (col === CV_BLUE ? 0 : 1) : i % 2];
+      const col = cols[i % cols.length], from = src(col, i);
       const el = h("div", { class: "cv-burst", style: `color:${col}` });
       el.innerHTML = '<svg viewBox="0 0 24 24"><use href="#cvHw"/></svg>';
       root.append(el);
-      const x0 = src.left + src.width / 2 - rr.left - 15, y0 = src.top + src.height / 2 - rr.top - 15;
-      const ang = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.5, dist = 120 + Math.random() * Math.min(rr.width, rr.height) * 0.5;
+      const x0 = from.left + from.width / 2 - rr.left - 15, y0 = from.top + from.height / 2 - rr.top - 15;
+      const ang = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.5, dist = (120 + Math.random() * Math.min(rr.width, rr.height) * 0.5) * spread;
       const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist, s = 0.5 + Math.random() * 0.9, rot = (Math.random() - 0.5) * 70;
       const a = el.animate([
         { transform: `translate(${x0}px,${y0}px) scale(.2) rotate(0deg)`, opacity: 0 },
         { transform: `translate(${x0 + dx * 0.6}px,${y0 + dy * 0.6}px) scale(${s}) rotate(${rot / 2}deg)`, opacity: 1, offset: 0.35 },
         { transform: `translate(${x0 + dx}px,${y0 + dy - 80}px) scale(${s * 0.9}) rotate(${rot}deg)`, opacity: 0 }],
-        { duration: 1800 + Math.random() * 1200, delay: i * (quiet ? 60 : 35), easing: "cubic-bezier(.15,.7,.3,1)", fill: "both" });
+        { duration: (1800 + Math.random() * 1200) * (spread < 1 ? 0.7 : 1), delay: i * gap, easing: "cubic-bezier(.15,.7,.3,1)", fill: "both" });
       a.onfinish = () => el.remove();
     }
   }
@@ -2286,6 +2308,7 @@ html.convite-on body { overflow: hidden; }
     cvAnims.forEach((a) => a.cancel()); cvAnims = []; cvTimers.forEach(clearTimeout); cvTimers = [];
     cvDone = false; cvOpened = false; cvGate = !me;
     const root = $("#convite"), all = (sel) => [...root.querySelectorAll(sel)], T = cvT, reduce = reduceMotion;
+    root.classList.toggle("cv-gate", cvGate);
     root.classList.remove("cv-live");
     document.documentElement.classList.add("convite-on");
     root.classList.add("cv-run");
@@ -2311,8 +2334,19 @@ html.convite-on body { overflow: hidden; }
     }
     return new Promise((res) => { cvResolve = res; });
   }
+  function cvNames() {
+    const nm = NM();
+    document.querySelectorAll("#convite [data-k]").forEach((s) => (s.textContent = nm[s.dataset.k]));
+  }
+  function cvSetPick(k) {
+    cvPicked = k;
+    document.querySelectorAll("#cvPick [data-pick]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.pick === k)));
+  }
   function cvShowForm() {
     cvGate = true;
+    $("#convite").classList.add("cv-gate");
+    cvNames(); cvSetPick(null);
+    $("#cvPick").hidden = !!data.config.revelacao;
     $("#cvForm").hidden = false; $("#cvHave").hidden = false; $("#cvSkip").hidden = true;
     $("#convite .cv-env-hint").style.display = "none";
     cvA($("#cvForm"), [{ opacity: 0, transform: "translateY(-12px)" }, { opacity: 1, transform: "none" }], { duration: cvT(600) });
@@ -2325,9 +2359,23 @@ html.convite-on body { overflow: hidden; }
     e.preventDefault();
     const name = $("#cvName").value.trim(), btn = $("#cvOpenBtn");
     if (!name) { toast("Escreve o teu nome para abrir o convite."); $("#cvName").focus(); return; }
+    const askVote = !data.config.revelacao;
+    if (askVote && !cvPicked) { toast("Escolhe o teu palpite: menino, menina ou os dois."); return; }
     btn.disabled = true;
     try {
-      if (await ensureMe(name)) { cvOpen(); return; }
+      if (await ensureMe(name)) {
+        if (askVote && !myVote) {
+          if (cvPicked === "ambos") { myVote = "skip"; LS.set("palpite", "skip"); }
+          else {
+            try {
+              const r = await call("vote", cvPicked);
+              if (r.ok) { myVote = cvPicked; LS.set("palpite", cvPicked); }
+              else toast("Não foi possível guardar o palpite. Podes dá-lo mais tarde.");
+            } catch (_) { toast("Não foi possível guardar o palpite. Podes dá-lo mais tarde."); }
+          }
+        }
+        cvOpen(); return;
+      }
     } catch (_) { toast("Não foi possível continuar. Verifica a ligação e tenta outra vez."); }
     if (!cvOpened) btn.disabled = false;
   }
@@ -2402,7 +2450,7 @@ html.convite-on body { overflow: hidden; }
     try { if (document.fullscreenElement) document.exitFullscreen(); } catch (_) {}
   }
 
-  function render() { renderMe(); renderHeader(); renderPie(); renderTug(); renderTop(); renderNames(); renderGifts(); renderMessages(); renderPhotos(); renderFesta(); }
+  function render() { cvNames(); renderMe(); renderHeader(); renderPie(); renderTug(); renderTop(); renderNames(); renderGifts(); renderMessages(); renderPhotos(); renderFesta(); }
 
   // ---------- ações ----------
   async function reserve(id) {
@@ -2568,6 +2616,11 @@ html.convite-on body { overflow: hidden; }
   $("#cvGo").addEventListener("click", (e) => { e.stopPropagation(); closeConvite(); });
   $("#convite").addEventListener("click", (e) => { if (!cvDone && !e.target.closest("form, button")) cvFinish(); });   // tocar salta a animação
   $("#cvForm").addEventListener("submit", cvSubmitName);
+  document.querySelectorAll("#cvPick [data-pick]").forEach((b) => b.addEventListener("click", () => {
+    cvSetPick(b.dataset.pick);
+    const k = b.dataset.pick, r = b.getBoundingClientRect();
+    cvBurst(k === "menino" ? [CV_BLUE] : k === "menina" ? [CV_PINK] : [CV_BLUE, CV_PINK], 10, () => r, 30, 0.45);
+  }));
   $("#cvHave").addEventListener("click", (e) => { e.stopPropagation(); openLogin(); });
   document.querySelectorAll("#cvChoice [data-cv]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); cvVote(b.dataset.cv); }));
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.documentElement.classList.contains("convite-on")) closeConvite(); });
