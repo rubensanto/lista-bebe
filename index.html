@@ -7,7 +7,9 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2722%27 fill=%27%23fff%27/%3E%3Ctext x=%274%27 y=%2776%27 font-family=%27Georgia,serif%27 font-weight=%27bold%27 font-size=%2784%27 fill=%27%23e57aa0%27%3EB%3C/text%3E%3Ctext x=%2742%27 y=%2790%27 font-family=%27Georgia,serif%27 font-weight=%27bold%27 font-size=%2784%27 fill=%27%234f8fd0%27 fill-opacity=%27.9%27%3EL%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&family=Cormorant+Garamond:wght@500;600&family=Allura&display=swap">
+<link rel="preload" as="image" href="convite-urso.webp">
+<script>try { if (!localStorage.getItem("lpb-convite") && location.hash !== "#festa") document.documentElement.classList.add("convite-on"); } catch (e) {}</script>
 <style>
 /* Layout: hero with countdown, two stat cards (progress + guess pie), gift sections, guestbook */
 :root {
@@ -411,9 +413,139 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .bar i, .choice { transition: none; } }
 @media (max-width: 480px) { .wrap { padding-inline: 16px; padding-block: 28px 56px; } }
+/* convite animado (aparece ao entrar no site) */
+#convite { display: none; position: fixed; inset: 0; z-index: 100; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px;
+  background: radial-gradient(120% 80% at 15% 10%, #fde7ee 0, transparent 60%), radial-gradient(120% 80% at 90% 90%, #e2eefa 0, transparent 60%), #f6efe8;
+  overflow: hidden; -webkit-tap-highlight-color: transparent; color: #8a6248; }
+html.convite-on #convite { display: flex; }
+html.convite-on body { overflow: hidden; }
+.cv-skip { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: 14px; z-index: 5; background: rgba(255,255,255,.7); color: #8a6248; border: 1px solid #e6d3c3; font-size: 13px; padding: 6px 14px; }
+.cv-floaters { position: absolute; inset: 0; pointer-events: none; }
+.cv-floaters i { position: absolute; bottom: -40px; font-style: normal; opacity: 0; animation: cvRise linear infinite; }
+@keyframes cvRise { 0% { transform: translateY(0) rotate(0); opacity: 0; } 10% { opacity: .55; } 90% { opacity: .45; } 100% { transform: translateY(-110vh) rotate(25deg); opacity: 0; } }
+.cv-stage { position: relative; width: var(--cw); aspect-ratio: 2 / 3; flex: none;
+  --cw: min(92vw, calc((100vh - 110px) * 2 / 3), 470px); }
+@supports (height: 100svh) { .cv-stage { --cw: min(92vw, calc((100svh - 110px) * 2 / 3), 470px); } }
+/* envelope (camadas separadas: o convite passa por entre elas) */
+.cv-env { position: absolute; left: 4%; right: 4%; top: 36%; aspect-ratio: 1.45; pointer-events: none; }
+.cv-env-back { z-index: 1; background: #e8d5c4; border-radius: 10px; box-shadow: 0 18px 40px rgba(120,85,60,.22); }
+.cv-env-front { z-index: 3; background: linear-gradient(160deg, #f4e6da, #ebdacb); clip-path: polygon(0 0, 50% 54%, 100% 0, 100% 100%, 0 100%); border-radius: 10px; }
+.cv-env-front::after { content: ""; position: absolute; inset: 0; border-radius: 10px; background: linear-gradient(to top right, transparent calc(50% - 1px), rgba(160,120,90,.16) 50%, transparent calc(50% + 1px)), linear-gradient(to top left, transparent calc(50% - 1px), rgba(160,120,90,.16) 50%, transparent calc(50% + 1px)); }
+.cv-env-flap { z-index: 4; background: linear-gradient(180deg, #f0e1d4, #e4cfbd); clip-path: polygon(0 0, 100% 0, 50% 60%); transform-origin: 50% 0; }
+.cv-env-seal { z-index: 5; }
+.cv-seal { position: absolute; left: 50%; top: 58%; width: 18%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #dcae91, #b47a5c 70%); box-shadow: 0 3px 8px rgba(100,60,40,.35), inset 0 0 0 3px rgba(255,255,255,.18); display: grid; place-items: center; }
+.cv-seal svg { width: 52%; fill: #f8e9dc; }
+.cv-env-hint { position: absolute; left: 0; right: 0; top: 81%; margin: 0; text-align: center; font: 500 18px/1.3 "Cormorant Garamond", Georgia, serif; letter-spacing: .04em; color: #9a7458; z-index: 1; }
+#convite:not(.cv-run) .cv-stage, #convite:not(.cv-run) .cv-cta { visibility: hidden; }
+/* o cartão */
+.cv-card { position: absolute; inset: 0; z-index: 2; background: #fbf6f1; border-radius: 6px; box-shadow: 0 24px 60px rgba(120,85,60,.25), 0 2px 6px rgba(120,85,60,.12);
+  container-type: inline-size; overflow: hidden; transform-origin: 50% 50%; }
+.cv-card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 60% at 50% 30%, #fffdfb 0, transparent 70%); }
+.cv-card > * { position: absolute; margin: 0; }
+.cv-hearts { inset: 0; pointer-events: none; }
+.cv-hearts .cv-heart { position: absolute; }
+.cv-frame { inset: 0; width: 100%; height: 100%; overflow: visible; }
+.cv-frame path { fill: none; stroke: #caa685; stroke-width: 2.6; stroke-linecap: round; }
+.cv-heart { width: 3.3cqw; aspect-ratio: 1; color: #e3c4aa; transform: translate(-50%, -50%); }
+.cv-heart svg, .cv-ic svg, .cv-big svg, .cv-mid svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.cv-heart.big { width: 5cqw; color: #cfa785; }
+.cv-bear { left: 66.1%; top: 2.1%; width: 31.8%; transform-origin: 62% 0; }
+.cv-bear img { width: 100%; display: block; }
+.cv-t { left: 0; right: 0; text-align: center; font-family: "Cormorant Garamond", Georgia, serif; color: #8a6248; line-height: 1.14; font-variant-numeric: lining-nums; }
+.cv-cha { top: 18.5%; left: -6%; font-weight: 500; font-size: 18.5cqw; letter-spacing: .02em; line-height: 1; color: #8c6449; }
+.cv-cha span { display: inline-block; }
+.cv-rev { top: 27.6%; left: -8%; font-family: "Allura", "Great Vibes", cursive; font-size: 17cqw; line-height: 1; color: #8a6248; white-space: nowrap; }
+.cv-swash { left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.cv-swash path { fill: none; stroke: #b98e6c; stroke-width: 2.4; stroke-linecap: round; }
+.cv-sub { top: 44.2%; font-size: 3.9cqw; font-weight: 500; }
+.cv-div { top: 51.6%; left: 35%; right: 35%; height: 4cqw; display: flex; align-items: center; gap: 2.5cqw; }
+.cv-div b { flex: 1; height: 1.5px; background: #d6b69b; }
+.cv-div .cv-mid { width: 3.4cqw; flex: none; color: #c99f7e; }
+.cv-row { left: 24.8%; font-variant-numeric: lining-nums; display: flex; align-items: center; gap: 6.5cqw; font-family: "Cormorant Garamond", Georgia, serif; color: #7e5a41; white-space: nowrap; }
+.cv-row .cv-ic { width: 6.4cqw; aspect-ratio: 1; flex: none; color: #b88b69; }
+.cv-ic > svg > path, .cv-ic > svg > rect, .cv-ic > svg > circle { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.cv-ic .fill { fill: currentColor; }
+.cv-r1 { top: 53.9%; font-size: 4.9cqw; font-weight: 600; }
+.cv-r2 { top: 58.9%; font-size: 4.9cqw; font-weight: 600; }
+.cv-r3 { top: 64.1%; font-size: 3.85cqw; font-weight: 500; }
+.cv-div2 { top: 69.3%; }
+.cv-end { top: 71.9%; font-size: 3.9cqw; font-weight: 500; }
+.cv-big { width: 9.6cqw; top: 82.6%; transform: translate(-50%, -50%); }
+.cv-big.b { left: 41.5%; color: #a9c8e8; } .cv-big.g { left: 59%; color: #f4b9c6; }
+.cv-big.g svg { transform: rotate(8deg); } .cv-big.b svg { transform: rotate(-8deg); }
+.cv-rays { left: 32%; right: 32%; top: 80%; height: 6cqw; }
+.cv-rays i { position: absolute; width: 2.4cqw; height: 1.5px; background: #d9b89d; border-radius: 2px; }
+.cv-pill { left: 22.8%; right: 22.8%; top: 87.4%; height: 4.6%; border: 1.5px solid #d6b69b; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 2.2cqw;
+  font: 500 3cqw/1 Figtree, system-ui, sans-serif; color: #8a6248; white-space: nowrap; }
+.cv-pill .cv-mid { width: 3.2cqw; color: #c99f7e; }
+.cv-cta { position: relative; z-index: 3; flex: none; font-size: 15px; padding: 11px 22px; background: #b47a5c; color: #fff; box-shadow: 0 8px 20px rgba(140,90,60,.3); opacity: 0; pointer-events: none; }
+.cv-cta.on { pointer-events: auto; }
+/* depois de aparecer, as coisas continuam a mexer-se devagar */
+.cv-live .cv-bear { animation: cvSway 5.5s ease-in-out infinite; }
+@keyframes cvSway { 0%, 100% { transform: rotate(-2.2deg) translateY(0); } 50% { transform: rotate(2.2deg) translateY(-1.6%); } }
+.cv-live .cv-heart.tw { animation: cvTwinkle 3.2s ease-in-out infinite; }
+@keyframes cvTwinkle { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+.cv-live .cv-big svg { animation: cvBeat 1.6s ease-in-out infinite; }
+.cv-live .cv-big.g svg { animation-delay: .8s; }
+@keyframes cvBeat { 0%, 60%, 100% { scale: 1; } 15% { scale: 1.16; } 30% { scale: .98; } 45% { scale: 1.08; } }
+.cv-live .cv-cta { animation: cvPulse 2.4s ease-in-out infinite; }
+@keyframes cvPulse { 0%, 100% { box-shadow: 0 8px 20px rgba(140,90,60,.3), 0 0 0 0 rgba(180,122,92,.35); } 50% { box-shadow: 0 8px 20px rgba(140,90,60,.3), 0 0 0 10px rgba(180,122,92,0); } }
+.cv-open-btn { display: inline-flex; align-items: center; gap: 6px; }
+@media (prefers-reduced-motion: reduce) { .cv-live .cv-bear, .cv-live .cv-heart.tw, .cv-live .cv-big svg, .cv-live .cv-cta, .cv-floaters { animation: none !important; } .cv-floaters { display: none; } }
 </style>
 </head>
 <body>
+<div id="convite" role="dialog" aria-modal="true" aria-label="Convite para o chá revelação">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="cvH" viewBox="0 0 24 24"><path d="M12 20.6s-7.4-4.5-9.5-9C.9 8.1 2.8 4.4 6.4 4.4c2.3 0 3.9 1.3 5.6 3.4 1.7-2.1 3.3-3.4 5.6-3.4 3.6 0 5.5 3.7 3.9 7.2-2.1 4.5-9.5 9-9.5 9z"/></symbol>
+    <symbol id="cvHo" viewBox="0 0 24 24"><path d="M12 20.6s-7.4-4.5-9.5-9C.9 8.1 2.8 4.4 6.4 4.4c2.3 0 3.9 1.3 5.6 3.4 1.7-2.1 3.3-3.4 5.6-3.4 3.6 0 5.5 3.7 3.9 7.2-2.1 4.5-9.5 9-9.5 9z" fill="currentColor" fill-opacity=".38" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    <symbol id="cvHl" viewBox="0 0 24 24"><path d="M12 20.6s-7.4-4.5-9.5-9C.9 8.1 2.8 4.4 6.4 4.4c2.3 0 3.9 1.3 5.6 3.4 1.7-2.1 3.3-3.4 5.6-3.4 3.6 0 5.5 3.7 3.9 7.2-2.1 4.5-9.5 9-9.5 9z" fill="#fbf6f1" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    <symbol id="cvHw" viewBox="0 0 24 24"><path d="M12 20.6s-7.4-4.5-9.5-9C.9 8.1 2.8 4.4 6.4 4.4c2.3 0 3.9 1.3 5.6 3.4 1.7-2.1 3.3-3.4 5.6-3.4 3.6 0 5.5 3.7 3.9 7.2-2.1 4.5-9.5 9-9.5 9z" fill="currentColor"/><path d="M6.5 8.5l2.5 3M9 7l4 5.5M12.5 9l3 4M15.5 8l2 2.6M8 12.5l3 3.5M12 13.5l2 2.3" stroke="#fff" stroke-opacity=".55" stroke-width=".8" stroke-linecap="round"/></symbol>
+  </svg>
+  <div class="cv-floaters" id="cvFloat" aria-hidden="true"></div>
+  <button class="cv-skip" type="button" id="cvSkip">Saltar</button>
+  <div class="cv-stage" id="cvStage">
+    <div class="cv-env cv-env-back" aria-hidden="true"></div>
+    <div class="cv-card" id="cvCard">
+      <svg class="cv-frame" viewBox="0 0 1024 1536" preserveAspectRatio="none" aria-hidden="true">
+        <path id="cvArchL" d="M512,44 C501.7,44.3 468.7,44.8 450,46 C431.3,47.2 416.7,48.5 400,51 C383.3,53.5 366.7,56.8 350,61 C333.3,65.2 316.7,69.8 300,76 C283.3,82.2 266.7,89.2 250,98 C233.3,106.8 212.5,120.3 200,129 C187.5,137.7 187.3,138.2 175,150 C162.7,161.8 139.7,183.3 126,200 C112.3,216.7 102.3,233.3 93,250 C83.7,266.7 76.2,283.3 70,300 C63.8,316.7 58.8,330 56,350 C53.2,370 53.9,408.3 53.5,420 L53.5,1390 C53.5,1440 85,1469 135,1469 L512,1469"/>
+        <path id="cvArchR" d="M512,44 C522.3,44.3 555.3,44.8 574,46 C592.7,47.2 607.3,48.5 624,51 C640.7,53.5 657.3,56.8 674,61 C690.7,65.2 707.3,69.8 724,76 C740.7,82.2 757.3,89.2 774,98 C790.7,106.8 811.5,120.3 824,129 C836.5,137.7 836.7,138.2 849,150 C861.3,161.8 884.3,183.3 898,200 C911.7,216.7 921.7,233.3 931,250 C940.3,266.7 947.8,283.3 954,300 C960.2,316.7 965.2,330 968,350 C970.8,370 970.1,408.3 970.5,420 L970.5,1390 C970.5,1440 939,1469 889,1469 L512,1469"/>
+      </svg>
+      <div class="cv-hearts" id="cvHearts" aria-hidden="true"></div>
+      <div class="cv-heart big" style="left:50%;top:2.9%" data-pop="frame"><svg><use href="#cvHl"/></svg></div>
+      <div class="cv-heart big" style="left:50%;top:95.6%" data-pop="frame"><svg><use href="#cvHl"/></svg></div>
+      <div class="cv-bear" id="cvBear"><img src="convite-urso.webp" alt="Ursinho com balões cor-de-rosa e azuis"></div>
+      <div class="cv-t cv-cha" id="cvCha" aria-label="Chá"><span>C</span><span>H</span><span>Á</span></div>
+      <div class="cv-t cv-rev" id="cvRev">Revelação</div>
+      <svg class="cv-swash" viewBox="0 0 1024 1536" preserveAspectRatio="none" aria-hidden="true">
+        <path id="cvSw1" d="M232,584 C262,604 318,626 392,632 C424,634 452,634 478,632"/>
+        <path id="cvSw2" d="M548,628 C600,618 668,610 716,616 C738,619 752,624 760,612"/>
+      </svg>
+      <div class="cv-heart big" id="cvSwHeart" style="left:50%;top:41.6%;width:5.4cqw;color:#c99f7e"><svg><use href="#cvHo"/></svg></div>
+      <p class="cv-t cv-sub" id="cvSub">Uma doce surpresa está a caminho<br>e queremos partilhá-la contigo!</p>
+      <div class="cv-div" id="cvDiv1" aria-hidden="true"><b></b><span class="cv-mid"><svg><use href="#cvHo"/></svg></span><b></b></div>
+      <div class="cv-row cv-r1" id="cvR1"><span class="cv-ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/><use href="#cvH" x="7.6" y="11.2" width="8.8" height="8.8" class="fill"/></svg></span>18 de outubro</div>
+      <div class="cv-row cv-r2" id="cvR2"><span class="cv-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l-3.3 2.3"/></svg></span>15h30</div>
+      <div class="cv-row cv-r3" id="cvR3"><span class="cv-ic"><svg viewBox="0 0 24 24"><path d="M12 22.5s7.2-6.7 7.2-12.6a7.2 7.2 0 0 0-14.4 0c0 5.9 7.2 12.6 7.2 12.6z"/><use href="#cvH" x="7.7" y="5.4" width="8.6" height="8.6" class="fill"/></svg></span>Travessa das Cavadas, n.º 34</div>
+      <div class="cv-div cv-div2" id="cvDiv2" aria-hidden="true"><b></b><span class="cv-mid"><svg><use href="#cvHo"/></svg></span><b></b></div>
+      <p class="cv-t cv-end" id="cvEnd">Vem descobrir connosco<br>se é menino ou menina!</p>
+      <div class="cv-rays" id="cvRays" aria-hidden="true">
+        <i style="left:0;top:30%;transform:rotate(18deg)"></i><i style="left:2%;top:72%;transform:rotate(-14deg)"></i>
+        <i style="right:0;top:30%;transform:rotate(-18deg)"></i><i style="right:2%;top:72%;transform:rotate(14deg)"></i>
+      </div>
+      <div class="cv-big b" id="cvBigB" aria-hidden="true"><svg><use href="#cvHw"/></svg></div>
+      <div class="cv-heart" id="cvBigMid" style="left:50%;top:82.6%;width:3cqw;color:#d8b496" aria-hidden="true"><svg><use href="#cvHo"/></svg></div>
+      <div class="cv-big g" id="cvBigG" aria-hidden="true"><svg><use href="#cvHw"/></svg></div>
+      <div class="cv-pill" id="cvPill"><span class="cv-mid"><svg><use href="#cvHo"/></svg></span>Confirmação até domingo, dia 11</div>
+    </div>
+    <div class="cv-env cv-env-front" aria-hidden="true"></div>
+    <div class="cv-env cv-env-flap" aria-hidden="true"></div>
+    <div class="cv-env cv-env-seal" aria-hidden="true"><div class="cv-seal"><svg viewBox="0 0 24 24"><use href="#cvH"/></svg></div></div>
+    <p class="cv-env-hint" aria-hidden="true">Tens um convite… 💌</p>
+  </div>
+  <button class="cv-cta" type="button" id="cvGo">Ver a lista de presentes ➜</button>
+</div>
 <div class="bg-names" aria-hidden="true"><span class="b" id="bgBoy"></span><span class="g" id="bgGirl"></span></div>
 <main class="wrap">
   <header class="hero">
@@ -457,6 +589,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
         Partilhar
       </button>
+      <button class="btn-ghost cv-open-btn" type="button" id="openConvite">💌 Ver o convite</button>
       <div class="share-menu" id="shareMenu" role="menu" hidden>
         <a role="menuitem" id="shareWa" href="https://wa.me/" target="_blank" rel="noopener noreferrer">
           <svg viewBox="0 0 24 24" fill="#25D366" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.1 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l2 .9c.3.1.5.2.5.3.1.2.1.7-.1 1.2z"/></svg>
@@ -1921,6 +2054,134 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
     const nx = list[(festaFotoI + 1) % list.length]; if (nx) new Image().src = photoUrl(nx.path);   // pré-carrega a seguinte
   }
 
+  // ---------- convite animado (ao entrar no site) ----------
+  const CV_HEARTS = [[110, 113], [208, 220], [576, 130], [648, 268], [107, 385], [935, 392], [963, 55], [925, 642], [95, 676], [166, 815],
+    [850, 880], [142, 1135], [916, 1120], [830, 1265], [110, 1320], [910, 1400]];
+  let cvAnims = [], cvTimers = [], cvResolve = null, cvDone = false;
+  function cvBuild() {
+    if ($("#cvHearts").childElementCount) return;
+    $("#cvHearts").append(...CV_HEARTS.map(([x, y], i) => {
+      const d = h("div", { class: "cv-heart tw", style: `left:${(x / 1024) * 100}%;top:${(y / 1536) * 100}%;width:${i % 3 ? 3.2 : 4}cqw;animation-delay:${(i * 0.37) % 3}s` });
+      d.innerHTML = '<svg><use href="#cvHo"/></svg>';
+      return d;
+    }));
+    const fl = $("#cvFloat");
+    for (let i = 0; i < 14; i++) {
+      fl.append(h("i", { text: ["💗", "💙", "🤍", "🎈"][i % 4],
+        style: `left:${(i * 7.3 + 3) % 100}%;font-size:${12 + (i * 5) % 14}px;animation-duration:${9 + (i * 3) % 8}s;animation-delay:${-(i * 1.7) % 12}s` }));
+    }
+  }
+  // anima um elemento e guarda a animação para a poder terminar de uma vez (toque = salta para o fim)
+  function cvA(el, kf, o) {
+    const a = el.animate(kf, { fill: "both", easing: "cubic-bezier(.2,.75,.25,1)", ...o });
+    cvAnims.push(a);
+    return a;
+  }
+  function cvDraw(path, o) {
+    const L = path.getTotalLength();
+    path.style.strokeDasharray = L;
+    return cvA(path, [{ strokeDashoffset: L }, { strokeDashoffset: 0 }], o);
+  }
+  const cvPop = (el, delay, d = 520) => cvA(el, [{ transform: "translate(-50%,-50%) scale(0)", opacity: 0 }, { transform: "translate(-50%,-50%) scale(1.25)", opacity: 1, offset: 0.6 }, { transform: "translate(-50%,-50%) scale(1)", opacity: 1 }], { duration: d, delay });
+  const cvUp = (el, delay, d = 700, dy = 14) => cvA(el, [{ transform: `translateY(${dy}px)`, opacity: 0, filter: "blur(3px)" }, { transform: "none", opacity: 1, filter: "blur(0)" }], { duration: d, delay });
+  function cvFinish() {
+    cvTimers.forEach(clearTimeout); cvTimers = [];
+    cvAnims.forEach((a) => { try { a.finish(); } catch (_) {} });
+    cvLive();
+  }
+  function cvLive() {
+    if (cvDone) return;
+    cvDone = true;
+    $("#convite").classList.add("cv-live");
+    $("#cvGo").classList.add("on");
+    $("#cvSkip").hidden = true;
+  }
+  function playConvite() {
+    cvBuild();
+    cvAnims.forEach((a) => a.cancel()); cvAnims = []; cvTimers.forEach(clearTimeout); cvTimers = []; cvDone = false;
+    const root = $("#convite");
+    root.classList.remove("cv-live");
+    document.documentElement.classList.add("convite-on");
+    $("#cvSkip").hidden = false; $("#cvGo").classList.remove("on");
+    const reduce = reduceMotion;
+    const T = (ms) => (reduce ? 0 : ms);
+    const all = (sel) => [...root.querySelectorAll(sel)];
+    const card = $("#cvCard"), envs = all(".cv-env"), back = $("#convite .cv-env-back");
+    root.classList.add("cv-run");
+    // 1) o envelope chega, abre-se e o convite sai lá de dentro
+    const stage = $("#cvStage").getBoundingClientRect(), envR = back.getBoundingClientRect();
+    const s0 = (envR.height * 0.84) / stage.height;                       // cartão pequeno, cabe dentro do envelope
+    const cy = stage.top + stage.height / 2;
+    const inY = envR.top + envR.height * 0.55 - cy;
+    const outY = envR.top - cy - stage.height * s0 * 0.08;
+    cvA(root, [{ opacity: 0 }, { opacity: 1 }], { duration: T(400) });
+    envs.forEach((e) => (e.style.display = reduce ? "none" : ""));
+    $("#convite .cv-env-hint").style.display = reduce ? "none" : "";
+    if (!reduce) {
+      const drop = [{ transform: "translateY(60px) scale(.85) rotate(-4deg)", opacity: 0 }, { transform: "translateY(-6px) scale(1.02) rotate(1deg)", opacity: 1, offset: 0.7 }, { transform: "none", opacity: 1 }];
+      envs.forEach((e) => cvA(e, drop, { duration: 900, delay: 150 }));
+      cvA($("#convite .cv-env-hint"), [{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none", offset: 0.3 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }], { duration: 1700, delay: 450 });
+      cvA($("#convite .cv-seal"), [{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: "translate(-50%,-50%) scale(1.3) rotate(-12deg)", opacity: 1, offset: 0.4 }, { transform: "translate(-50%,-50%) scale(0) rotate(30deg)", opacity: 0 }], { duration: 550, delay: 1350 });
+      cvA($("#convite .cv-env-flap"), [{ transform: "perspective(900px) rotateX(0)", zIndex: 4 }, { transform: "perspective(900px) rotateX(90deg)", zIndex: 4, offset: 0.5 }, { transform: "perspective(900px) rotateX(90deg)", zIndex: 0, offset: 0.51 }, { transform: "perspective(900px) rotateX(180deg)", zIndex: 0 }], { duration: 750, delay: 1700, easing: "ease-in-out" });
+      cvA(card, [
+        { transform: `translateY(${inY}px) scale(${s0})`, zIndex: 2, offset: 0 },
+        { transform: `translateY(${outY}px) scale(${s0})`, zIndex: 2, offset: 0.42 },
+        { transform: `translateY(${outY}px) scale(${s0})`, zIndex: 6, offset: 0.43 },
+        { transform: `translateY(${outY - 10}px) scale(${s0 * 1.04}) rotate(-2deg)`, zIndex: 6, offset: 0.55 },
+        { transform: "none", zIndex: 6 }], { duration: 2000, delay: 2350, easing: "cubic-bezier(.45,.05,.25,1)" });
+      envs.forEach((e) => cvA(e, [{ transform: "none", opacity: 1 }, { transform: "translateY(55vh) rotate(6deg)", opacity: 0 }], { duration: 900, delay: 3400, easing: "cubic-bezier(.5,0,.75,0)" }));
+    }
+
+    // 2) o convite ganha vida, por partes
+    const t0 = T(4400);
+    const at = (ms) => t0 + T(ms);
+    cvA(card.querySelector(".cv-frame"), [{ opacity: 0 }, { opacity: 1 }], { duration: 10, delay: at(0) });
+    cvDraw($("#cvArchL"), { duration: T(1700), delay: at(0), easing: "cubic-bezier(.45,.1,.3,1)" });
+    cvDraw($("#cvArchR"), { duration: T(1700), delay: at(0), easing: "cubic-bezier(.45,.1,.3,1)" });
+    all('[data-pop="frame"]').forEach((el, i) => cvPop(el, at(i ? 1550 : 50), T(600)));
+    all("#cvHearts .cv-heart").forEach((el, i) => cvPop(el, at(250 + i * 70), T(500)));
+    all("#cvCha span").forEach((el, i) => cvA(el, [{ transform: "translateY(40%) scale(.9)", opacity: 0, filter: "blur(6px)" }, { transform: "none", opacity: 1, filter: "blur(0)" }], { duration: T(800), delay: at(400 + i * 150) }));
+    cvA($("#cvRev"), [{ clipPath: "inset(-20% 100% -30% -5%)", opacity: 0.2 }, { clipPath: "inset(-20% -5% -30% -5%)", opacity: 1 }], { duration: T(1700), delay: at(950), easing: "cubic-bezier(.4,.1,.3,1)" });
+    cvA($("#cvBear"), [{ transform: "translate(20%, 60%) rotate(10deg) scale(.7)", opacity: 0 }, { transform: "translate(-3%, -4%) rotate(-4deg) scale(1.03)", opacity: 1, offset: 0.65 }, { transform: "none", opacity: 1 }], { duration: T(1800), delay: at(700), easing: "cubic-bezier(.3,.7,.3,1)" });
+    cvDraw($("#cvSw1"), { duration: T(700), delay: at(2350), easing: "ease-out" });
+    cvPop($("#cvSwHeart"), at(2900), T(600));
+    cvDraw($("#cvSw2"), { duration: T(700), delay: at(3100), easing: "ease-out" });
+    cvUp($("#cvSub"), at(3300), T(800));
+    ["#cvDiv1", "#cvDiv2"].forEach((s, i) => {
+      const d = $(s), dl = at(i ? 5200 : 3800);
+      d.querySelectorAll("b").forEach((b, j) => cvA(b, [{ transform: "scaleX(0)", transformOrigin: j ? "0 50%" : "100% 50%" }, { transform: "scaleX(1)", transformOrigin: j ? "0 50%" : "100% 50%" }], { duration: T(600), delay: dl + T(150) }));
+      cvA(d.querySelector(".cv-mid"), [{ transform: "scale(0)" }, { transform: "scale(1.3)", offset: 0.6 }, { transform: "scale(1)" }], { duration: T(500), delay: dl });
+    });
+    ["#cvR1", "#cvR2", "#cvR3"].forEach((s, i) => {
+      const el = $(s), dl = at(4200 + i * 300);
+      cvA(el, [{ transform: "translateX(-18px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: T(700), delay: dl });
+      cvA(el.querySelector(".cv-ic"), [{ transform: "scale(0) rotate(-30deg)" }, { transform: "scale(1.2) rotate(6deg)", offset: 0.6 }, { transform: "none" }], { duration: T(600), delay: dl + T(80) });
+    });
+    cvUp($("#cvEnd"), at(5500), T(800));
+    cvPop($("#cvBigB"), at(6100), T(650));
+    cvPop($("#cvBigMid"), at(6250), T(500));
+    cvPop($("#cvBigG"), at(6350), T(650));
+    cvA($("#cvRays"), [{ opacity: 0, transform: "scale(.6)" }, { opacity: 1, transform: "scale(1)" }], { duration: T(500), delay: at(6550) });
+    cvUp($("#cvPill"), at(6800), T(700), 10);
+    cvA($("#cvGo"), [{ transform: "translateY(16px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: T(600), delay: at(7200) });
+    cvTimers.push(setTimeout(cvLive, at(7300)));
+    return new Promise((res) => { cvResolve = res; });
+  }
+  function closeConvite() {
+    const root = $("#convite");
+    cvFinish();
+    LS.set("convite", true);
+    const a = root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: reduceMotion ? 0 : 550, easing: "ease-in", fill: "forwards" });
+    $("#cvCard").animate([{ transform: "none" }, { transform: "translateY(-24px) scale(.96)" }], { duration: reduceMotion ? 0 : 550, easing: "ease-in", fill: "forwards" });
+    a.onfinish = () => {
+      document.documentElement.classList.remove("convite-on");
+      root.classList.remove("cv-run", "cv-live");
+      root.getAnimations({ subtree: true }).forEach((x) => x.cancel());
+      cvAnims = [];
+      if (cvResolve) { const r = cvResolve; cvResolve = null; r(); }
+    };
+  }
+
   // ---------- modo festa (para TV) ----------
   let festaMsgI = 0, festaTimer = null, festaRefresh = null;
   function showFestaMsg() {
@@ -2135,6 +2396,11 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
   });
 
   $("#openFesta").addEventListener("click", openFesta);
+  $("#openConvite").addEventListener("click", () => { playConvite(); });
+  $("#cvSkip").addEventListener("click", (e) => { e.stopPropagation(); closeConvite(); });
+  $("#cvGo").addEventListener("click", (e) => { e.stopPropagation(); closeConvite(); });
+  $("#convite").addEventListener("click", () => { if (!cvDone) cvFinish(); });   // tocar salta a animação
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.documentElement.classList.contains("convite-on")) closeConvite(); });
   $("#meBtn").addEventListener("click", () => (me ? openMine() : openLogin()));
   $("#resBtn").addEventListener("click", openReservas);
   $("#photoGrid").addEventListener("scroll", stripArrows, { passive: true });
@@ -2170,6 +2436,8 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
 
   // ---------- arranque ----------
   render();
+  // na primeira visita, o convite animado aparece antes de tudo
+  const intro = document.documentElement.classList.contains("convite-on") ? playConvite() : null;
   (async () => {
     // link pessoal (#c=CÓDIGO): entra com esse convidado e tira o código do endereço
     const m = location.hash.match(/^#c=([A-Za-z0-9-]{8,12})$/);
@@ -2184,6 +2452,7 @@ body.festa-open .react-bar, body.game-open .react-bar { display: none; }
       try { const r = await syncMe(); if (!r.ok && r.reason === "chave") lostMe(); } catch (_) {}
     }
     await refresh();
+    if (intro) await intro;
     if (location.hash === "#festa" && !isDono()) history.replaceState(null, "", location.pathname + location.search);
     if (location.hash === "#festa" && isDono()) openFesta(); else if (!myVote && !data.config.revelacao) openModal();
   })();
