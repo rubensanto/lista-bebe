@@ -2469,7 +2469,7 @@ html.convite-on body { overflow: hidden; }
   }
 
   // ---------- modo festa (para TV) ----------
-  let festaMsgI = 0, festaTimer = null, festaRefresh = null;
+  let festaMsgI = 0, festaTimer = null, festaRefresh = null, festaMsgTimer = null;
   function showFestaMsg() {
     const list = data.mensagens;
     const m = list.length ? list[festaMsgI % list.length] : null;
@@ -2533,14 +2533,22 @@ html.convite-on body { overflow: hidden; }
     festaTimer = setInterval(() => {
       festaTopI++; renderFestaTop();
       festaFotoI++; showFestaPhoto();
-      festaMsgI++; const el = $("#fMsg"); el.style.opacity = 0;
-      setTimeout(() => { showFestaMsg(); el.style.opacity = 1; }, 500);
     }, 8000);
+    clearTimeout(festaMsgTimer); nextFestaMsg();
+  }
+  // cada mensagem fica o tempo de ser lida: 12 s, mais um pouco por cada letra (no máximo 30 s)
+  function nextFestaMsg() {
+    const list = data.mensagens, m = list.length ? list[festaMsgI % list.length] : null;
+    const ms = Math.min(30000, 12000 + (m ? m.texto.length : 0) * 60);
+    festaMsgTimer = setTimeout(() => {
+      festaMsgI++; const el = $("#fMsg"); el.style.opacity = 0;
+      setTimeout(() => { showFestaMsg(); el.style.opacity = 1; nextFestaMsg(); }, 500);
+    }, ms);
   }
   function closeFesta() {
     $("#festa").hidden = true; document.body.style.overflow = ""; document.body.classList.remove("festa-open");
     clearInterval(reactTimer); clearInterval(tvSwap); clearTimeout(tvIdle);
-    clearInterval(festaTimer); clearInterval(festaRefresh);
+    clearInterval(festaTimer); clearInterval(festaRefresh); clearTimeout(festaMsgTimer);
     if (location.hash === "#festa") history.replaceState(null, "", location.pathname + location.search);
     try { if (document.fullscreenElement) document.exitFullscreen(); } catch (_) {}
   }
