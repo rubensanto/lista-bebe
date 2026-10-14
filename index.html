@@ -83,7 +83,10 @@ section.block { display: flex; flex-direction: column; gap: 16px; }
 /* o que os pais já têm */
 .have-group { display: flex; flex-direction: column; gap: 10px; }
 .have-group h3 { font-size: 17px; }
-.have-group .who { margin: -4px 0 0; }
+.have-note { margin: 0; padding: 14px 18px; border-radius: 14px; background: var(--card); border: 1px dashed var(--line); color: var(--muted); font-size: 14.5px; max-width: 75ch; }
+.have-list .n { font-weight: 500; opacity: .8; }
+.have-list .btn-text { padding: 0 0 0 4px; font-size: 13px; }
+.btn-dono { align-self: flex-start; font-size: 13px; }
 .have-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .have-list li { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 10px; border-radius: 999px; background: var(--sage-soft); color: var(--sage); font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
 .have-list li::before { content: "✓"; display: grid; place-items: center; width: 20px; height: 20px; flex: none; border-radius: 50%; background: var(--sage); color: var(--card); font-size: 12px; }
@@ -752,15 +755,15 @@ html.convite-on body { overflow: hidden; }
   <section class="block" id="haveBlock" hidden>
     <div class="block-head">
       <h2>Isto já temos</h2>
-      <p>Coisas da lista que nós, os pais, já arranjámos. Não é preciso oferecê-las.</p>
+      <p>Presentes da lista que já não é preciso oferecer.</p>
     </div>
+    <p class="have-note">Ao longo do período de reservas, alguns presentes foram deixando de estar disponíveis. Em alguns casos já não precisamos de mais (ou dos mesmos), por exemplo porque já nos foram oferecidos antes; noutros, pelo número de reservas que já tinham, achámos que não fazem falta mais. Naturalmente, as reservas já feitas mantêm-se.</p>
     <div class="have-group" id="haveSingle">
       <h3>Dos que só precisávamos de um</h3>
       <ul class="have-list" id="haveSingleList"></ul>
     </div>
     <div class="have-group" id="haveMulti">
-      <h3>Dos que precisamos vários</h3>
-      <p class="who">Já temos alguns, mas ainda assim, quantos mais melhor: continuam na lista mais abaixo.</p>
+      <h3>Dos que precisávamos vários</h3>
       <ul class="have-list" id="haveMultiList"></ul>
     </div>
   </section>
@@ -947,6 +950,7 @@ html.convite-on body { overflow: hidden; }
     reserve: (id, code, qty) => ["reserve", { p_prenda: id, p_chave: me && me.chave, p_codigo: code || "", p_quantidade: qty || 1 }],
     setQuantity: (code, n) => ["set_quantity", { p_code: code || "", p_quantidade: n }],
     removeGift: (id) => ["remove_gift", { p_prenda: id, p_chave: me && me.chave }],
+    setJaTemos: (id, valor) => ["set_ja_temos", { p_prenda: id, p_chave: me && me.chave, p_valor: !!valor }],
     photoSlot: () => ["photo_slot", { p_chave: me && me.chave }],
     photoDone: (p) => ["photo_done", { p_chave: me && me.chave, p_path: p }],
     deletePhoto: (p) => ["delete_photo", { p_chave: me && me.chave, p_path: p }],
@@ -1461,19 +1465,22 @@ html.convite-on body { overflow: hidden; }
 
   function renderGifts() {
     // livres primeiro (os reservados vão para o fim); nos de vários, primeiro os que têm menos gente a oferecer
-    // o que os pais já têm: os únicos saem da lista; os de vários ficam, porque ainda assim são bem-vindos
+    // o que os pais já têm sai da lista e mais ninguém o pode escolher (as reservas que já havia mantêm-se)
     const haveSingles = data.gifts.filter((g) => !g.multi && g.pais);
     const haveMultis = data.gifts.filter((g) => g.multi && g.pais);
+    const haveItem = (g) => h("li", {}, g.name,
+      g.count ? h("span", { class: "n", text: `(${g.count} ${g.count === 1 ? "reserva" : "reservas"})` }) : null,
+      isDono() ? h("button", { class: "btn-text", type: "button", disabled: busy.has(g.id), onclick: () => setJaTemos(g.id, false) }, "Desfazer") : null);
     $("#haveBlock").hidden = !haveSingles.length && !haveMultis.length;
     $("#haveSingle").hidden = !haveSingles.length;
     $("#haveMulti").hidden = !haveMultis.length;
-    $("#haveSingleList").replaceChildren(...haveSingles.map((g) => h("li", { text: g.name })));
-    $("#haveMultiList").replaceChildren(...haveMultis.map((g) => h("li", { text: g.name })));
+    $("#haveSingleList").replaceChildren(...haveSingles.map(haveItem));
+    $("#haveMultiList").replaceChildren(...haveMultis.map(haveItem));
 
     const singles = data.gifts.filter((g) => !g.multi && !g.pais).sort((a, b) => (a.count > 0) - (b.count > 0));
-    const multis = data.gifts.filter((g) => g.multi).sort((a, b) => a.count - b.count || (a.units || 0) - (b.units || 0));
+    const multis = data.gifts.filter((g) => g.multi && !g.pais).sort((a, b) => a.count - b.count || (a.units || 0) - (b.units || 0));
     const sTaken = singles.filter((g) => g.count > 0).length;
-    const mTotal = multis.reduce((a, g) => a + (g.units || g.count), 0);
+    const mTotal = data.gifts.filter((g) => g.multi).reduce((a, g) => a + (g.units || g.count), 0);
     $("#giftsBig").replaceChildren(String(sTaken), h("small", { text: `de ${singles.length} reservados` }));
     $("#barFill").style.width = singles.length ? (sTaken / singles.length) * 100 + "%" : "0";
     $("#giftsSub").textContent = multis.length
@@ -1553,6 +1560,10 @@ html.convite-on body { overflow: hidden; }
       actions.append(h("div", { class: "row" },
         h("button", { class: "btn-primary", type: "button", onclick: () => { openClaim = g.id; qtyDraft = 1; render(); } },
           g.multi ? (g.count ? "Também vou oferecer" : "Vou oferecer") : "Vou oferecer este")));
+    }
+    // só para o dono: marcar que os pais já têm (fecha a prenda; as reservas mantêm-se)
+    if (isDono() && openClaim !== g.id) {
+      actions.append(h("button", { class: "btn-ghost btn-dono", type: "button", disabled: working, onclick: () => setJaTemos(g.id, true) }, "✓ Já temos"));
     }
     li.append(actions);
     if (myCreated().has(g.id)) {
@@ -2607,7 +2618,23 @@ html.convite-on body { overflow: hidden; }
       else if (r.reason === "taken") { openClaim = null; toast("Este presente acabou de ser reservado por outra pessoa."); }
       else if (r.reason === "eventcode") { codeDraft = ""; toast("O código do evento não está certo. Pede-o a quem te enviou a lista."); }
       else if (r.reason === "missing") { openClaim = null; toast("Este presente já não está na lista."); }
+      else if (r.reason === "jatemos") { openClaim = null; toast("Os pais já não precisam deste presente."); }
       else toast("Escreve o teu nome para continuar.");
+    } catch (e) { toast("Não foi possível guardar. Verifica a ligação e tenta outra vez."); }
+    finally { busy.delete(id); await refresh(); }
+  }
+
+  // só o dono: marca/desmarca "já temos"
+  async function setJaTemos(id, valor) {
+    const g = data.gifts.find((x) => x.id === id);
+    if (!g || busy.has(id) || !isDono()) return;
+    if (valor && !confirm(`Marcar «${g.name}» como "já temos"? Mais ninguém o poderá escolher${g.count ? " (as reservas que já tem mantêm-se)" : ""}.`)) return;
+    busy.add(id); render();
+    try {
+      const r = await call("setJaTemos", id, valor);
+      if (r.ok) toast(valor ? `«${g.name}» passou para "Isto já temos".` : `«${g.name}» voltou à lista.`);
+      else if (r.reason === "chave") lostMe();
+      else toast("Só os pais podem mudar isto.");
     } catch (e) { toast("Não foi possível guardar. Verifica a ligação e tenta outra vez."); }
     finally { busy.delete(id); await refresh(); }
   }
